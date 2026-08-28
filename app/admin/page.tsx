@@ -1,7 +1,7 @@
 "use client";
+/* eslint-disable @next/next/no-html-link-for-pages */
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
 type User = { id: string; email: string; displayName: string; role: string; plan: string; vipExpiresAt: number | null; createdAt: number };
 
@@ -46,7 +46,7 @@ export default function AdminPage() {
 
   return (
     <main className="admin-shell">
-      <header className="topbar"><Link className="brand" href="/"><span className="brand-mark">L</span><span>VIP 管理后台</span></Link><Link className="admin-account-link" href="/account">账户</Link></header>
+      <header className="topbar"><a className="brand" href="/"><span className="brand-mark">L</span><span>VIP 管理后台</span></a><a className="admin-account-link" href="/account">账户</a></header>
       <section className="admin-page">
         <div className="admin-heading"><small>ADMIN</small><h1>VIP 管理后台</h1><p>修改开通地址，并为注册用户开通或取消 VIP。</p></div>
         {error && <p className="admin-alert error">{error}</p>}{message && <p className="admin-alert">{message}</p>}

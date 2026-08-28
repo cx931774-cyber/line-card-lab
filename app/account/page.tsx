@@ -1,7 +1,7 @@
 "use client";
+/* eslint-disable @next/next/no-html-link-for-pages */
 
 import { FormEvent, useEffect, useState } from "react";
-import Link from "next/link";
 
 type Account = {
   id: string;
@@ -30,15 +30,6 @@ export default function AccountPage() {
 
   const returnTo = typeof window === "undefined" ? "/" : new URLSearchParams(window.location.search).get("returnTo") || "/";
 
-  const refresh = async () => {
-    const response = await fetch("/api/auth/me", { cache: "no-store" });
-    const data = await response.json() as { user: Account | null; activationUrl: string };
-    setAccount(data.user);
-    setActivationUrl(data.activationUrl);
-    setLoading(false);
-    if (data.user && returnTo.startsWith("/") && !returnTo.startsWith("//") && returnTo !== "/") window.location.href = returnTo;
-  };
-
   useEffect(() => {
     let active = true;
     fetch("/api/auth/me", { cache: "no-store" })
@@ -59,15 +50,24 @@ export default function AccountPage() {
     event.preventDefault();
     setSubmitting(true);
     setError("");
-    const response = await fetch(`/api/auth/${mode}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    const data = await response.json() as { error?: string };
-    if (!response.ok) setError(data.error || "操作失败");
-    else await refresh();
-    setSubmitting(false);
+    try {
+      const response = await fetch(`/api/auth/${mode}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await response.json() as { error?: string };
+      if (!response.ok) {
+        setError(data.error || "操作失败");
+        return;
+      }
+      const destination = returnTo.startsWith("/") && !returnTo.startsWith("//") && returnTo !== "/" ? returnTo : "/account";
+      window.location.replace(destination);
+    } catch {
+      setError("账户服务暂时不可用");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const logout = async () => {
@@ -86,8 +86,8 @@ export default function AccountPage() {
 
   return (
     <main className="account-shell">
-      <header className="topbar"><Link className="brand" href="/"><span className="brand-mark">L</span><span>LINE 卡片实验室</span></Link></header>
-      <div className="account-return"><Link href="/">← 返回样板列表</Link></div>
+      <header className="topbar"><a className="brand" href="/"><span className="brand-mark">L</span><span>LINE 卡片实验室</span></a></header>
+      <div className="account-return"><a href="/">← 返回样板列表</a></div>
       <section className="account-page">
         {!loading && account ? (
           <div className="account-status">
