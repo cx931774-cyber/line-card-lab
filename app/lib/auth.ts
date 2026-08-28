@@ -4,7 +4,7 @@ export type Plan = "free" | "monthly" | "annual" | "lifetime";
 
 export type SessionUser = {
   id: string;
-  email: string;
+  identifier: string;
   displayName: string;
   role: "user" | "admin";
   plan: Plan;
@@ -60,12 +60,18 @@ export async function verifyPassword(password: string, salt: string, expectedHas
   return difference === 0;
 }
 
-export function normalizeEmail(value: string) {
+export function normalizeIdentifier(value: string) {
   return value.trim().toLowerCase();
 }
 
-export function validEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 160;
+export function validIdentifier(value: string) {
+  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 160;
+  const validUsername = /^[\p{L}\p{N}][\p{L}\p{N}._-]{2,31}$/u.test(value);
+  return validEmail || validUsername;
+}
+
+export function identifierDisplayName(value: string) {
+  return value.includes("@") ? value.split("@")[0] : value;
 }
 
 function cookieValue(request: Request, name: string) {
@@ -106,7 +112,7 @@ export async function getSessionUser(request: Request): Promise<SessionUser | nu
   if (!token) return null;
   const now = Math.floor(Date.now() / 1000);
   const row = await database().prepare(`
-    SELECT u.id, u.email, u.display_name AS displayName, u.role, u.plan,
+    SELECT u.id, u.email AS identifier, u.display_name AS displayName, u.role, u.plan,
            u.vip_expires_at AS vipExpiresAt
     FROM sessions s
     JOIN users u ON u.id = s.user_id

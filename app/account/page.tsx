@@ -5,7 +5,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 
 type Account = {
   id: string;
-  email: string;
+  identifier: string;
   displayName: string;
   role: "user" | "admin";
   plan: "free" | "monthly" | "annual" | "lifetime";
@@ -24,12 +24,16 @@ export default function AccountPage() {
   const [account, setAccount] = useState<Account | null>(null);
   const [payment, setPayment] = useState({ usdtAddress: "", usdtNetwork: "", usdtLogoUrl: "" });
   const [selectedPlan, setSelectedPlan] = useState<VipPlan | null>(null);
+  const [transactionHash, setTransactionHash] = useState("");
+  const [rechargeSubmitting, setRechargeSubmitting] = useState(false);
+  const [rechargeError, setRechargeError] = useState("");
+  const [rechargeNotice, setRechargeNotice] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
   const [mode, setMode] = useState<"login" | "register">("login");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ identifier: "", password: "" });
   const closeRechargeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -109,6 +113,31 @@ export default function AccountPage() {
     }
   };
 
+  const submitRecharge = async () => {
+    if (!selectedPlan || !transactionHash.trim()) return;
+    setRechargeSubmitting(true);
+    setRechargeError("");
+    try {
+      const response = await fetch("/api/payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: selectedPlan.id, transactionHash: transactionHash.trim() }),
+      });
+      const data = await response.json() as { error?: string };
+      if (!response.ok) {
+        setRechargeError(data.error || "提交失败");
+        return;
+      }
+      setSelectedPlan(null);
+      setTransactionHash("");
+      setRechargeNotice("充值信息已提交，等待管理员确认。");
+    } catch {
+      setRechargeError("提交失败，请稍后重试");
+    } finally {
+      setRechargeSubmitting(false);
+    }
+  };
+
   return (
     <main className="account-shell">
       <header className="topbar"><a className="brand" href="/"><span className="brand-mark">L</span><span>LINE 卡片实验室</span></a></header>
@@ -116,7 +145,7 @@ export default function AccountPage() {
       <section className="account-page">
         {!loading && account ? (
           <div className="account-status">
-            <div><strong>{account.displayName}</strong><span>{account.email}</span></div>
+            <div><strong>{account.displayName}</strong><span>{account.identifier}</span></div>
             <div className={account.vip ? "vip-chip active" : "vip-chip"}>{account.vip ? `${account.plan.toUpperCase()} VIP` : "免费账户"}</div>
             {account.role === "admin" && <a href="/admin">进入后台</a>}
             <button type="button" onClick={logout}>退出登录</button>
@@ -124,30 +153,37 @@ export default function AccountPage() {
         ) : !loading ? (
           <form className="auth-card" onSubmit={submit}>
             <div className="auth-tabs"><button type="button" className={mode === "login" ? "active" : ""} onClick={() => setMode("login")}>登录</button><button type="button" className={mode === "register" ? "active" : ""} onClick={() => setMode("register")}>注册</button></div>
-            <label><span>邮箱</span><input type="email" required value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} autoComplete="email" /></label>
+            <label><span>用户名或邮箱</span><input type="text" required value={form.identifier} onChange={(event) => setForm({ ...form, identifier: event.target.value })} autoComplete="username" placeholder="用户名或邮箱" /></label>
             <label><span>密码</span><input type="password" required minLength={8} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} autoComplete={mode === "login" ? "current-password" : "new-password"} /></label>
             {error && <p className="form-error">{error} <a href="/account">重新载入</a></p>}
             <button className="auth-submit" type="submit" disabled={submitting}>{submitting ? "请稍候…" : mode === "login" ? "登录" : "注册账户"}</button>
           </form>
         ) : <div className="account-loading">正在读取账户…</div>}
 
+        {rechargeNotice && <p className="recharge-success">{rechargeNotice}</p>}
         <div className="pricing-grid">
           {PLANS.map((plan) => (
             <article className={`price-card ${plan.id === "annual" ? "featured" : ""}`} key={plan.id}>
               <span>{plan.name}</span><h2><small>USD</small> ${plan.price}</h2><p>{plan.unit}</p><em>{plan.note}</em>
-              {account?.vip ? <button type="button" disabled>已开通 VIP</button> : account ? <button type="button" onClick={() => { setSelectedPlan(plan); setCopyMessage(""); }}>查看充值信息</button> : <button type="button" onClick={() => setMode("login")}>登录后开通</button>}
+              {account?.vip ? <button type="button" disabled>已开通 VIP</button> : account ? <button type="button" onClick={() => { setSelectedPlan(plan); setCopyMessage(""); setTransactionHash(""); setRechargeError(""); setRechargeNotice(""); }}>查看充值信息</button> : <button type="button" onClick={() => setMode("login")}>登录后开通</button>}
             </article>
           ))}
         </div>
       </section>
       {account && !account.vip && selectedPlan && (
-        <div className="recharge-modal-backdrop" onClick={(event) => { if (event.target === event.currentTarget) setSelectedPlan(null); }}>
+        <div className="recharge-modal-backdrop">
+          <button className="recharge-backdrop-dismiss" type="button" tabIndex={-1} aria-label="关闭充值信息" onClick={() => setSelectedPlan(null)} />
           <section className="recharge-panel recharge-modal" role="dialog" aria-modal="true" aria-label="USDT 充值信息">
             <div className="recharge-heading"><div className="recharge-brand">{payment.usdtLogoUrl && <img src={payment.usdtLogoUrl} alt="USDT" />}<div><small>USDT PAYMENT</small><h2>{selectedPlan.name}</h2></div></div><button ref={closeRechargeRef} type="button" aria-label="关闭充值信息" onClick={() => setSelectedPlan(null)}>×</button></div>
             <p className="recharge-amount">应付金额 <strong>{selectedPlan.price} USDT</strong></p>
             {payment.usdtAddress ? <>
               <dl><div><dt>链网络</dt><dd>{payment.usdtNetwork}</dd></div><div><dt>USDT 收款地址</dt><dd><code>{payment.usdtAddress}</code></dd></div></dl>
-              <button className="copy-address" type="button" onClick={copyAddress}>{copyMessage || "复制充值地址"}</button>
+              <label className="transaction-hash"><span>交易哈希值</span><input type="text" value={transactionHash} onChange={(event) => setTransactionHash(event.target.value)} placeholder="请输入转账交易哈希值" autoComplete="off" /></label>
+              <div className="recharge-actions">
+                <button className="copy-address" type="button" onClick={copyAddress}>{copyMessage || "复制充值地址"}</button>
+                <button className="recharge-confirm" type="button" disabled={!transactionHash.trim() || rechargeSubmitting} onClick={submitRecharge}>{rechargeSubmitting ? "正在提交…" : "我已充值"}</button>
+              </div>
+              {rechargeError && <p className="recharge-submit-error">{rechargeError}</p>}
               <p className="recharge-note">请确认充值网络与上方一致。转错网络可能导致资产无法找回。</p>
             </> : <p className="recharge-unavailable">管理员尚未设置 USDT 充值地址。</p>}
           </section>

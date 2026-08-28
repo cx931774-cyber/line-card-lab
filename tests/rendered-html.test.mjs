@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 async function render(pathname = "/") {
@@ -37,11 +38,19 @@ test("renders the login and VIP pricing page", async () => {
   assert.match(html, /299/);
 });
 
+test("supports username or email authentication and transaction hash submission", async () => {
+  const source = await readFile(new URL("../app/account/page.tsx", import.meta.url), "utf8");
+  assert.match(source, /用户名或邮箱/);
+  assert.match(source, /交易哈希值/);
+  assert.match(source, /我已充值/);
+});
+
 test("renders USDT payment settings in the admin shell", async () => {
   const response = await render("/admin");
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /USDT 收款设置/);
   assert.match(html, /链网络/);
+  assert.match(html, /充值记录/);
   assert.doesNotMatch(html, /跳转到这个地址/);
 });

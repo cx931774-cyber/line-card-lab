@@ -8,11 +8,19 @@ async function requireAdmin(request: Request) {
 export async function GET(request: Request) {
   if (!(await requireAdmin(request))) return Response.json({ error: "无权访问" }, { status: 403 });
   const result = await database().prepare(`
-    SELECT id, email, display_name AS displayName, role, plan,
+    SELECT id, email AS identifier, display_name AS displayName, role, plan,
            vip_expires_at AS vipExpiresAt, created_at AS createdAt
     FROM users ORDER BY created_at DESC LIMIT 500
   `).all();
-  return Response.json({ users: result.results, ...await paymentDetails() });
+  const payments = await database().prepare(`
+    SELECT p.id, p.user_id AS userId, p.plan, p.amount_cents AS amountCents,
+           p.transaction_hash AS transactionHash, p.status, p.created_at AS createdAt,
+           u.email AS identifier, u.display_name AS displayName
+    FROM payment_submissions p
+    JOIN users u ON u.id = p.user_id
+    ORDER BY p.created_at DESC LIMIT 500
+  `).all();
+  return Response.json({ users: result.results, payments: payments.results, ...await paymentDetails() });
 }
 
 export async function PATCH(request: Request) {

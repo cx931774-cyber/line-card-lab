@@ -15,6 +15,20 @@
       "when": 1787918446965,
       "tag": "0001_funny_psynapse",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1787919613907,
+      "tag": "0002_rename_admin_identifier",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1787919848301,
+      "tag": "0003_regular_scourge",
+      "breakpoints": true
     }
   ]
 }
