@@ -26,7 +26,7 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({ displayName: "", email: "", password: "" });
+  const [form, setForm] = useState({ email: "", password: "" });
 
   const returnTo = typeof window === "undefined" ? "/" : new URLSearchParams(window.location.search).get("returnTo") || "/";
 
@@ -109,7 +109,6 @@ export default function AccountPage() {
         ) : !loading ? (
           <form className="auth-card" onSubmit={submit}>
             <div className="auth-tabs"><button type="button" className={mode === "login" ? "active" : ""} onClick={() => setMode("login")}>登录</button><button type="button" className={mode === "register" ? "active" : ""} onClick={() => setMode("register")}>注册</button></div>
-            {mode === "register" && <label><span>名称</span><input value={form.displayName} onChange={(event) => setForm({ ...form, displayName: event.target.value })} autoComplete="name" /></label>}
             <label><span>邮箱</span><input type="email" required value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} autoComplete="email" /></label>
             <label><span>密码</span><input type="password" required minLength={8} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} autoComplete={mode === "login" ? "current-password" : "new-password"} /></label>
             {error && <p className="form-error">{error} <a href="/account">重新载入</a></p>}
