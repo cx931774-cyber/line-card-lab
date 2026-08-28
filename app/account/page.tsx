@@ -28,8 +28,6 @@ export default function AccountPage() {
   const [error, setError] = useState("");
   const [form, setForm] = useState({ email: "", password: "" });
 
-  const returnTo = typeof window === "undefined" ? "/" : new URLSearchParams(window.location.search).get("returnTo") || "/";
-
   useEffect(() => {
     let active = true;
     const loadAccount = async () => {
@@ -43,8 +41,6 @@ export default function AccountPage() {
           setActivationUrl(data.activationUrl);
           setError("");
           setLoading(false);
-          const destination = new URLSearchParams(window.location.search).get("returnTo") || "/";
-          if (data.user && destination.startsWith("/") && !destination.startsWith("//") && destination !== "/") window.location.href = destination;
           return;
         } catch {
           if (attempt < 2) await new Promise((resolve) => window.setTimeout(resolve, 700 * (attempt + 1)));
@@ -71,8 +67,7 @@ export default function AccountPage() {
         setError(data.error || "操作失败");
         return;
       }
-      const destination = returnTo.startsWith("/") && !returnTo.startsWith("//") && returnTo !== "/" ? returnTo : "/account";
-      window.location.replace(destination);
+      window.location.replace("/");
     } catch {
       setError("账户服务暂时不可用");
     } finally {
