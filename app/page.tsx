@@ -16,6 +16,7 @@ type CardButton = {
 type CardConfig = {
   id: string;
   image: string;
+  imageBackgroundColor?: string;
   link: string;
   kicker: string;
   title: string;
@@ -151,6 +152,34 @@ function placeholderImage(label = "YOUR BRAND") {
   return `https://dummyimage.com/1200x780/06c755/ffffff.png&text=${encodeURIComponent(label)}`;
 }
 
+function imageEdgeColor(image: HTMLImageElement) {
+  const sampleSize = 32;
+  const canvas = document.createElement("canvas");
+  canvas.width = sampleSize;
+  canvas.height = sampleSize;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  if (!context) return "";
+  context.drawImage(image, 0, 0, sampleSize, sampleSize);
+  const pixels = context.getImageData(0, 0, sampleSize, sampleSize).data;
+  let red = 0;
+  let green = 0;
+  let blue = 0;
+  let count = 0;
+  for (let index = 0; index < sampleSize; index += 2) {
+    for (const offset of [index, (sampleSize - 1) * sampleSize + index, index * sampleSize, index * sampleSize + sampleSize - 1]) {
+      const pixel = offset * 4;
+      if (pixels[pixel + 3] < 128) continue;
+      red += pixels[pixel];
+      green += pixels[pixel + 1];
+      blue += pixels[pixel + 2];
+      count += 1;
+    }
+  }
+  if (!count) return "";
+  const hex = (value: number) => Math.round(value / count).toString(16).padStart(2, "0");
+  return `#${hex(red)}${hex(green)}${hex(blue)}`;
+}
+
 async function prepareImage(file: File) {
   const bitmap = await createImageBitmap(file);
   const maxSide = 1600;
@@ -189,7 +218,8 @@ function buildFlexMessage(state: BuilderState) {
             url: safeUri(card.image) === card.image.trim() ? card.image.trim() : placeholderImage(card.kicker),
             size: "full",
             aspectRatio: settings.ratio || "20:13",
-            aspectMode: "cover",
+            aspectMode: "fit",
+            backgroundColor: card.imageBackgroundColor || card.backgroundColor || "#111815",
             action: { type: "uri", uri: cardTarget },
           },
           body: {
@@ -473,6 +503,7 @@ export default function Home() {
       const response = await fetch("/api/images", { method: "POST", body: formData });
       const result = await response.json() as { url?: string; error?: string };
       if (!response.ok || !result.url) throw new Error(result.error || "图片上传失败");
+      updateCard("imageBackgroundColor", "");
       updateCard("image", result.url);
       notify("图片已上传");
     } catch (error) {
@@ -732,8 +763,19 @@ export default function Home() {
                 <div className="phone-header"><span>‹</span><b>{builder.settings.chatName || "LINE"}</b><span>⋯</span></div>
                 <div className="chat-time">今天 10:24</div>
                 <article className="line-card" style={{ background: activeCard.backgroundColor }}>
-                  <div className="card-visual" style={{ aspectRatio: builder.settings.ratio.replace(":", " / ") }}>
-                    {activeCard.image && <img key={activeCard.image} src={activeCard.image} alt="" onLoad={(event) => { event.currentTarget.style.display = "block"; }} onError={(event) => { event.currentTarget.style.display = "none"; }} />}
+                  <div className="card-visual" style={{ aspectRatio: builder.settings.ratio.replace(":", " / "), backgroundColor: activeCard.imageBackgroundColor || activeCard.backgroundColor }}>
+                    {activeCard.image && <>
+                      <img className="visual-backdrop" key={`${activeCard.image}-backdrop`} src={activeCard.image} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none"; }} />
+                      <img className="visual-main" key={activeCard.image} src={activeCard.image} crossOrigin="anonymous" alt="" onLoad={(event) => {
+                        event.currentTarget.style.display = "block";
+                        try {
+                          const color = imageEdgeColor(event.currentTarget);
+                          if (color && color !== activeCard.imageBackgroundColor) updateCard("imageBackgroundColor", color);
+                        } catch {
+                          // Some external sample images don't allow canvas sampling.
+                        }
+                      }} onError={(event) => { event.currentTarget.style.display = "none"; }} />
+                    </>}
                     <div className="visual-fallback"><span>{activeCard.kicker || "YOUR BRAND"}</span><small>{String(activeIndex + 1).padStart(2, "0")}</small></div>
                   </div>
                   <div className="card-body">
