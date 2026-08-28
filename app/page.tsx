@@ -62,6 +62,21 @@ const FONT_SIZES: FontSize[] = ["xxs", "xs", "sm", "md", "lg", "xl", "xxl", "3xl
 const COMPAT_SHARE_PAGE = "https://liff.line.me/1654437282-A1Bj7p4a/share-json5gzip.html";
 const COMPAT_TEMPLATE = "https://taichunmin.idv.tw/liff-businesscard/cards/line-carousel-1.txt";
 
+const CATALOG_TEMPLATES = [
+  { form: "custom-line-carousel", name: "官网邀请卡片", preview: "https://i.imgur.com/yBjZFmf.png", description: "当前新建的自定义样板，支持实时预览、图片上传或链接，以及多张卡片。" },
+  { form: "chatgpt-1", name: "ChatGPT 問與答", preview: "https://i.imgur.com/0uU5aCG.png", description: "让你在 LINE 中模拟 ChatGPT 的问答画面，上面有开启自订链接及再次分享的按钮。" },
+  { form: "json5", name: "JSON5", preview: "https://i.imgur.com/ci4T6xG.png", description: "提供给有程式背景的开发者使用，可以使用 JSON5 API 来当作样板的资料来源。" },
+  { form: "line-carousel-1", name: "多頁訊息 1", preview: "https://i.imgur.com/0pbirUY.png", description: "来自 LINE 的样板，最多 12 张卡片，很适合用来制作广告传单。" },
+  { form: "psprint-592", name: "Corporate Buzz", preview: "https://i.imgur.com/AjbhMam.png", description: "来自 PsPrint 的样板，上面有链接可以开启，很适合用来制作个人名片。" },
+  { form: "google-sheet", name: "Google Sheet", preview: "https://i.imgur.com/Jdb68bE.png", description: "从 Google Sheet 读取名片资料来产生名片。" },
+  { form: "csv", name: "CSV", preview: "https://i.imgur.com/CU3myIc.png", description: "从 CSV 读取名片资料来产生名片。" },
+  { form: "facebook-post-link-1", name: "Facebook Post Link", preview: "https://i.imgur.com/hO0LAHK.png", description: "让你在 LINE 中模拟 Facebook 分享链接，并且还可再次分享。" },
+  { form: "psprint-3949", name: "Right Align", preview: "https://i.imgur.com/tUvhifE.png", description: "来自 PsPrint 的样板，上面有链接可以开启，很适合用来制作个人名片。" },
+  { form: "acnh-passport-1", name: "動物森友會護照", preview: "https://i.imgur.com/rGRMSdy.png", description: "《集合啦！动物森友会》的护照。" },
+  { form: "acnh-postcard-1", name: "動物森友會心意卡", preview: "https://i.imgur.com/gJASJdW.png", description: "来自《集合啦！动物森友会》的心意卡。" },
+  { form: "chatbot-tw-1", name: "Chatbot 台灣開發者", preview: "https://i.imgur.com/lEKHcUY.png", description: "Chatbot Developers Taiwan 的名片。" },
+] as const;
+
 const LEGACY_SECOND_BUTTON: CardButton = {
   id: "strategy-work",
   text: "查看服务与案例",
@@ -404,8 +419,45 @@ function loadLiffSdk() {
   });
 }
 
+function TemplateCatalog({ onOpenLineCarousel }: { onOpenLineCarousel: () => void }) {
+  return (
+    <main className="site-shell catalog-shell" id="top">
+      <header className="topbar catalog-topbar">
+        <a className="brand" href="#top" aria-label="LINE 卡片实验室首页">
+          <span className="brand-mark">L</span>
+          <span>LINE 卡片实验室</span>
+        </a>
+      </header>
+      <section className="catalog-page" aria-labelledby="catalog-title">
+        <div className="catalog-heading">
+          <span>LINE FLEX MESSAGE</span>
+          <h1 id="catalog-title">免费样板列表</h1>
+          <p>选择一款样板，进入它自己的名片编辑表单。</p>
+        </div>
+        <div className="template-grid">
+          {CATALOG_TEMPLATES.map((template) => (
+            <article className="template-card" key={template.form}>
+              <div className="template-preview"><img src={template.preview} alt={`${template.name} 样板预览`} /></div>
+              <div className="template-card-body">
+                <h2>{template.name}</h2>
+                <p>{template.description}</p>
+                {template.form === "custom-line-carousel" ? (
+                  <button type="button" onClick={onOpenLineCarousel}>▣&nbsp; 点击建立名片</button>
+                ) : (
+                  <a href={`/original/${template.form}`}>▣&nbsp; 点击建立名片</a>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}
+
 export default function Home() {
   const [builder, setBuilder] = useState<BuilderState>(DEFAULT_STATE);
+  const [showEditor, setShowEditor] = useState(false);
   const [activeCardId, setActiveCardId] = useState(DEFAULT_STATE.cards[0].id);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [compatibilityLink, setCompatibilityLink] = useState("");
@@ -415,6 +467,13 @@ export default function Home() {
   const [imageSourceMode, setImageSourceMode] = useState<ImageSourceMode>("url");
   const imageInputRef = useRef<HTMLInputElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const syncView = () => setShowEditor(new URLSearchParams(window.location.search).get("template") === "custom-line-carousel");
+    syncView();
+    window.addEventListener("popstate", syncView);
+    return () => window.removeEventListener("popstate", syncView);
+  }, []);
 
   useEffect(() => {
     try {
@@ -569,6 +628,20 @@ export default function Home() {
     return { background: "transparent", color: button.color, borderColor: "transparent" };
   };
 
+  const openLineCarousel = () => {
+    window.history.pushState({}, "", "?template=custom-line-carousel");
+    setShowEditor(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const openCatalog = () => {
+    window.history.pushState({}, "", window.location.pathname);
+    setShowEditor(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  if (!showEditor) return <TemplateCatalog onOpenLineCarousel={openLineCarousel} />;
+
   return (
     <main className="site-shell" id="top">
       <header className="topbar">
@@ -576,6 +649,7 @@ export default function Home() {
           <span className="brand-mark">L</span>
           <span>LINE 卡片实验室</span>
         </a>
+        <button className="catalog-back" type="button" onClick={openCatalog}>← 返回样板列表</button>
       </header>
 
       <section className="workspace" aria-label="卡片编辑工作区">
