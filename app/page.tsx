@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 
 type FontSize = "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "3xl" | "4xl" | "5xl";
 type ButtonStyle = "primary" | "secondary" | "link";
@@ -57,7 +57,7 @@ declare global {
   }
 }
 
-const STORAGE_KEY = "line-card-lab:v1";
+const STORAGE_KEY = "line-card-lab:v2";
 const FONT_SIZES: FontSize[] = ["xxs", "xs", "sm", "md", "lg", "xl", "xxl", "3xl", "4xl", "5xl"];
 const COMPAT_SHARE_PAGE = "https://liff.line.me/1654437282-A1Bj7p4a/share-json5gzip.html";
 const COMPAT_TEMPLATE = "https://taichunmin.idv.tw/liff-businesscard/cards/line-carousel-1.txt";
@@ -72,19 +72,19 @@ const LEGACY_SECOND_BUTTON: CardButton = {
 
 const DEFAULT_CARD: CardConfig = {
   id: "brand-strategy",
-  image: "https://images.unsplash.com/photo-1523726491678-bf852e717f6a?auto=format&fit=crop&w=1200&q=85",
-  link: "https://example.com/strategy",
-  kicker: "BRAND STRATEGY",
-  title: "把想法，变成会被记住的品牌",
-  description: "从定位、语言到视觉系统，整理出清楚且一致的品牌表达。",
+  image: "",
+  link: "",
+  kicker: "",
+  title: "",
+  description: "",
   backgroundColor: "#ffffff",
   titleColor: "#111815",
   descriptionColor: "#69716d",
   buttons: [
     {
       id: "strategy-book",
-      text: "预约品牌咨询",
-      link: "https://example.com/book",
+      text: "",
+      link: "",
       color: "#06c755",
       style: "primary",
     },
@@ -115,12 +115,12 @@ const LEGACY_SECOND_CARD: CardConfig = {
 const DEFAULT_STATE: BuilderState = {
   version: 1,
   settings: {
-    altText: "请在手机上查看这组品牌卡片。",
-    ratio: "20:13",
+    altText: "",
+    ratio: "20:20",
     titleSize: "xl",
     descriptionSize: "sm",
     buttonHeight: "sm",
-    chatName: "品牌咨询",
+    chatName: "官网邀请",
     liffId: "",
   },
   cards: [DEFAULT_CARD],
@@ -150,14 +150,6 @@ function safeUri(uri: string) {
 
 function placeholderImage(label = "YOUR BRAND") {
   return `https://dummyimage.com/1200x780/06c755/ffffff.png&text=${encodeURIComponent(label)}`;
-}
-
-function recommendedImageSize(ratio: string) {
-  const [rawWidth, rawHeight] = ratio.split(":").map(Number);
-  if (!rawWidth || !rawHeight || rawWidth <= 0 || rawHeight <= 0) return "1000 × 650 px";
-  const longestSide = 1000;
-  if (rawWidth >= rawHeight) return `${longestSide} × ${Math.round(longestSide * rawHeight / rawWidth)} px`;
-  return `${Math.round(longestSide * rawWidth / rawHeight)} × ${longestSide} px`;
 }
 
 function imageEdgeColor(image: HTMLImageElement) {
@@ -303,7 +295,7 @@ function toCompatibilityVcard(state: BuilderState) {
       desc: card.description,
       descColor: card.descriptionColor,
       image: card.image,
-      link: card.link,
+      link: card.buttons[0]?.link || "",
       title: card.title,
       titleColor: card.titleColor,
       btns: card.buttons.map((button) => ({
@@ -426,12 +418,9 @@ export default function Home() {
   const [builder, setBuilder] = useState<BuilderState>(DEFAULT_STATE);
   const [activeCardId, setActiveCardId] = useState(DEFAULT_STATE.cards[0].id);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [integrationOpen, setIntegrationOpen] = useState(false);
-  const [jsonOpen, setJsonOpen] = useState(false);
   const [compatibilityLink, setCompatibilityLink] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [toast, setToast] = useState("");
-  const [sharing, setSharing] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -441,6 +430,8 @@ export default function Home() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const normalized = migrateLegacyDefault(normalizeImported(JSON.parse(saved)));
+        normalized.settings.ratio = "20:20";
+        normalized.settings.chatName = normalized.settings.chatName || "官网邀请";
         setBuilder(normalized);
         setActiveCardId(normalized.cards[0].id);
       }
@@ -469,9 +460,6 @@ export default function Home() {
 
   const activeIndex = Math.max(0, builder.cards.findIndex((card) => card.id === activeCardId));
   const activeCard = builder.cards[activeIndex] || builder.cards[0];
-  const flexMessage = useMemo(() => buildFlexMessage(builder), [builder]);
-  const flexJson = useMemo(() => JSON.stringify(flexMessage, null, 2), [flexMessage]);
-  const imageSizeRecommendation = useMemo(() => recommendedImageSize(builder.settings.ratio), [builder.settings.ratio]);
 
   const notify = (message: string) => {
     setToast(message);
@@ -526,17 +514,17 @@ export default function Home() {
     const card: CardConfig = {
       id: newId("card"),
       image: "",
-      link: "https://example.com",
-      kicker: "NEW CARD",
-      title: "新的卡片标题",
-      description: "在这里写一句清楚、具体的说明。",
+      link: "",
+      kicker: "",
+      title: "",
+      description: "",
       backgroundColor: "#ffffff",
       titleColor: "#111815",
       descriptionColor: "#69716d",
       buttons: [{
         id: newId("button"),
-        text: "查看详情",
-        link: "https://example.com",
+        text: "",
+        link: "",
         color: "#06c755",
         style: "primary",
       }],
@@ -566,8 +554,8 @@ export default function Home() {
   const addButton = () => {
     updateCard("buttons", [...activeCard.buttons, {
       id: newId("button"),
-      text: "查看详情",
-      link: "https://example.com",
+      text: "",
+      link: "",
       color: "#06c755",
       style: "primary",
     }]);
@@ -584,48 +572,6 @@ export default function Home() {
     const buttons = [...activeCard.buttons];
     [buttons[buttonIndex], buttons[nextIndex]] = [buttons[nextIndex], buttons[buttonIndex]];
     updateCard("buttons", buttons);
-  };
-
-  const copyText = async (value: string, successMessage: string) => {
-    try {
-      await navigator.clipboard.writeText(value);
-    } catch {
-      const textarea = document.createElement("textarea");
-      textarea.value = value;
-      textarea.style.position = "fixed";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      textarea.remove();
-    }
-    notify(successMessage);
-  };
-
-  const shareViaLine = async () => {
-    const liffId = builder.settings.liffId.trim();
-    if (!liffId) {
-      setIntegrationOpen(true);
-      return notify("请先填写你自己的 LIFF ID");
-    }
-    setSharing(true);
-    try {
-      const liff = await loadLiffSdk();
-      await liff.init({ liffId });
-      if (!liff.isLoggedIn()) {
-        liff.login({ redirectUri: window.location.href });
-        return;
-      }
-      if (!liff.isApiAvailable("shareTargetPicker")) {
-        throw new Error("当前 LIFF 应用未开放 shareTargetPicker");
-      }
-      await liff.shareTargetPicker([flexMessage]);
-      notify("LINE 分享面板已打开");
-    } catch (error) {
-      notify(error instanceof Error ? error.message : "无法打开 LINE 分享");
-    } finally {
-      setSharing(false);
-    }
   };
 
   const buttonPreviewStyle = (button: CardButton) => {
@@ -647,7 +593,6 @@ export default function Home() {
         <div className="editor-panel">
           <div className="panel-heading">
             <div><span className="step">01</span><h2>编辑卡片</h2></div>
-            <span className="save-state"><i /> 本机自动保存</span>
           </div>
 
           <div className="card-tabs" aria-label="卡片列表">
@@ -669,8 +614,7 @@ export default function Home() {
             </button>
             {settingsOpen && (
               <div className="section-content settings-grid">
-                <label className="wide-field" htmlFor="alt-text"><span>替代文字</span><input id="alt-text" value={builder.settings.altText} onChange={(event) => updateSettings("altText", event.target.value)} /></label>
-                <label htmlFor="ratio"><span>图片比例</span><input id="ratio" value={builder.settings.ratio} onChange={(event) => updateSettings("ratio", event.target.value)} placeholder="20:13" /></label>
+                <label htmlFor="ratio"><span>图片比例（固定）</span><input id="ratio" value="20:20" readOnly /></label>
                 <label htmlFor="chat-name"><span>预览聊天名称</span><input id="chat-name" value={builder.settings.chatName} onChange={(event) => updateSettings("chatName", event.target.value)} /></label>
                 <label htmlFor="title-size"><span>标题字号</span><select id="title-size" value={builder.settings.titleSize} onChange={(event) => updateSettings("titleSize", event.target.value as FontSize)}>{FONT_SIZES.map((size) => <option key={size}>{size}</option>)}</select></label>
                 <label htmlFor="desc-size"><span>说明字号</span><select id="desc-size" value={builder.settings.descriptionSize} onChange={(event) => updateSettings("descriptionSize", event.target.value as FontSize)}>{FONT_SIZES.map((size) => <option key={size}>{size}</option>)}</select></label>
@@ -702,7 +646,6 @@ export default function Home() {
                   </div>
                   <div className="image-upload-actions">
                     <button type="button" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage}>{uploadingImage ? "上传中…" : activeCard.image ? "更换图片" : "选择图片"}</button>
-                    <span className="image-size-hint">推荐 {imageSizeRecommendation}</span>
                     {activeCard.image && <button className="remove-image" type="button" onClick={() => updateCard("image", "")} disabled={uploadingImage}>移除</button>}
                     <small>支持 JPG、PNG、WebP，最大 10MB</small>
                   </div>
@@ -746,15 +689,9 @@ export default function Home() {
           </section>
 
           <section className="editor-section compact-section">
-            <button className="section-toggle" type="button" aria-expanded={integrationOpen} onClick={() => setIntegrationOpen((open) => !open)}>
-              <span><small>OPTIONAL</small> LINE 分享接入</span><b>{integrationOpen ? "−" : "+"}</b>
-            </button>
-            {integrationOpen && (
-              <div className="section-content integration-content">
-                <p>复制 JSON 不需要账号。若要直接打开 LINE 好友选择器，请填写你在 LINE Developers 建立的 LIFF ID。</p>
-                <label htmlFor="liff-id"><span>你的 LIFF ID</span><input id="liff-id" value={builder.settings.liffId} onChange={(event) => updateSettings("liffId", event.target.value)} placeholder="1234567890-AbCdEfGh" /></label>
-              </div>
-            )}
+            <a className={`create-card-action ${compatibilityLink ? "" : "disabled"}`} href={compatibilityLink || undefined} target="_blank" rel="noreferrer" aria-disabled={!compatibilityLink}>
+              <span><small>LINE</small>{compatibilityLink ? "建立卡片" : "正在准备卡片…"}</span><b>↗</b>
+            </a>
           </section>
 
         </div>
@@ -786,14 +723,14 @@ export default function Home() {
                         }
                       }} onError={(event) => { event.currentTarget.style.display = "none"; }} />
                     </>}
-                    <div className="visual-fallback"><span>{activeCard.kicker || "YOUR BRAND"}</span><small>{String(activeIndex + 1).padStart(2, "0")}</small></div>
+                    <div className="visual-fallback"><span>{activeCard.kicker}</span><small>{String(activeIndex + 1).padStart(2, "0")}</small></div>
                   </div>
                   <div className="card-body">
                     {activeCard.kicker && <span className="preview-kicker">{activeCard.kicker}</span>}
-                    <h3 style={{ color: activeCard.titleColor }}>{activeCard.title || "请输入卡片标题"}</h3>
-                    <p style={{ color: activeCard.descriptionColor }}>{activeCard.description || "请输入卡片说明"}</p>
+                    <h3 style={{ color: activeCard.titleColor }}>{activeCard.title}</h3>
+                    <p style={{ color: activeCard.descriptionColor }}>{activeCard.description}</p>
                     <div className="preview-buttons">
-                      {activeCard.buttons.map((button) => <button key={button.id} type="button" style={buttonPreviewStyle(button)}>{button.text || "查看详情"}</button>)}
+                      {activeCard.buttons.map((button) => <button key={button.id} type="button" style={buttonPreviewStyle(button)}>{button.text}</button>)}
                     </div>
                   </div>
                 </article>
@@ -801,14 +738,6 @@ export default function Home() {
                   {builder.cards.map((card) => <button key={card.id} type="button" className={card.id === activeCard.id ? "active" : ""} onClick={() => setActiveCardId(card.id)} aria-label={`预览第 ${builder.cards.indexOf(card) + 1} 张卡片`} />)}
                 </div>
               </div>
-            </div>
-
-            <div className="output-actions">
-              <button className="primary-action" type="button" onClick={() => copyText(flexJson, "Flex Message JSON 已复制")}><span>复制 Flex Message JSON</span><b>↗</b></button>
-              <a className={`line-action ${compatibilityLink ? "" : "disabled"}`} href={compatibilityLink || undefined} target="_blank" rel="noreferrer"><span>{compatibilityLink ? "建立名片（兼容原页）" : "正在生成分享链接…"}</span><b>LINE</b></a>
-              <button className="own-liff-action" type="button" onClick={shareViaLine} disabled={sharing}><span>{sharing ? "正在连接 LINE…" : "用自己的 LIFF 分享"}</span><b>↗</b></button>
-              <button className="json-toggle" type="button" onClick={() => setJsonOpen((open) => !open)}>{jsonOpen ? "收起 JSON 预览" : "展开 JSON 预览"}</button>
-              {jsonOpen && <textarea className="json-output" readOnly value={flexJson} aria-label="Flex Message JSON 预览" />}
             </div>
           </div>
         </aside>
