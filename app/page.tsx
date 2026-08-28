@@ -558,7 +558,7 @@ export default function Home() {
       <section className="workspace" aria-label="卡片编辑工作区">
         <div className="editor-panel">
           <div className="panel-heading">
-            <div><span className="step">02</span><h2>编辑卡片</h2></div>
+            <div><span className="step">01</span><h2>编辑卡片</h2></div>
             <span className="save-state"><i /> 本机自动保存</span>
           </div>
 
@@ -662,7 +662,7 @@ export default function Home() {
         <aside className="preview-panel">
           <div className="preview-sticky">
             <div className="panel-heading inverse">
-              <div><span className="step">01</span><h2>LINE 实时预览</h2></div>
+              <div><span className="step">02</span><h2>LINE 实时预览</h2></div>
               <span className="card-count">输入即更新 · {activeIndex + 1} / {builder.cards.length}</span>
             </div>
 
