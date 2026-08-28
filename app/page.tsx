@@ -327,6 +327,12 @@ function AccountActions({ account }: { account: Account | null | undefined }) {
 }
 
 function TemplateCatalog({ onOpenLineCarousel, account }: { onOpenLineCarousel: () => void; account: Account | null | undefined }) {
+  const [loginTarget, setLoginTarget] = useState("");
+  const promptLogin = (target: string) => {
+    setLoginTarget(target);
+    window.setTimeout(() => setLoginTarget(""), 3200);
+  };
+
   return (
     <main className="site-shell catalog-shell" id="top">
       <header className="topbar catalog-topbar">
@@ -350,15 +356,21 @@ function TemplateCatalog({ onOpenLineCarousel, account }: { onOpenLineCarousel: 
                 <h2>{template.name}</h2>
                 <p>{template.description}</p>
                 {template.form === "custom-line-carousel" ? (
-                  <button type="button" onClick={onOpenLineCarousel}>▣&nbsp; 点击建立名片</button>
+                  <button type="button" onClick={() => account ? onOpenLineCarousel() : promptLogin("/?template=custom-line-carousel")}>▣&nbsp; 点击建立名片</button>
+                ) : account ? (
+                  <a href={`/original/${template.form}`}>▣&nbsp; 点击建立名片</a>
                 ) : (
-                  <a href={account ? `/original/${template.form}` : `/account?returnTo=${encodeURIComponent(`/original/${template.form}`)}`}>▣&nbsp; 点击建立名片</a>
+                  <button type="button" onClick={() => promptLogin(`/original/${template.form}`)}>▣&nbsp; 点击建立名片</button>
                 )}
               </div>
             </article>
           ))}
         </div>
       </section>
+      <div className={`login-entry-prompt ${loginTarget ? "show" : ""}`} role="status" aria-live="polite">
+        <span>请先登录</span>
+        {loginTarget && <a href={`/account?returnTo=${encodeURIComponent(loginTarget)}`}>登录 / 注册</a>}
+      </div>
     </main>
   );
 }
@@ -551,10 +563,6 @@ export default function Home() {
   };
 
   const openLineCarousel = () => {
-    if (!account) {
-      window.location.href = "/account?returnTo=%2F%3Ftemplate%3Dcustom-line-carousel";
-      return;
-    }
     window.history.pushState({}, "", "?template=custom-line-carousel");
     setShowEditor(true);
     window.scrollTo({ top: 0, behavior: "smooth" });

@@ -176,6 +176,9 @@ input:focus, textarea:focus, select:focus { border-color: var(--line-green); bac
 
 .toast { position: fixed; z-index: 20; left: 50%; bottom: 28px; max-width: calc(100vw - 40px); border-radius: 999px; background: var(--ink); color: white; padding: 11px 18px; font-size: 11px; box-shadow: 0 14px 40px rgba(0,0,0,.22); opacity: 0; pointer-events: none; transform: translate(-50%, 12px); transition: opacity .2s, transform .2s; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+.login-entry-prompt { position: fixed; z-index: 30; left: 50%; bottom: 28px; display: flex; align-items: center; gap: 14px; border-radius: 999px; background: var(--ink); color: white; padding: 11px 13px 11px 17px; font-size: 11px; font-weight: 800; box-shadow: 0 14px 40px rgba(0,0,0,.25); opacity: 0; pointer-events: none; transform: translate(-50%, 12px); transition: opacity .2s, transform .2s; }
+.login-entry-prompt.show { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+.login-entry-prompt a { border-radius: 999px; background: var(--line-green); color: white; padding: 7px 10px; text-decoration: none; font-size: 10px; }
 
 .account-shell, .admin-shell { min-height: 100vh; }
 .account-return { width: min(980px, calc(100% - 40px)); margin: 16px auto 0; }
