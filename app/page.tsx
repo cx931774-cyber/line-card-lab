@@ -19,7 +19,6 @@ type CardConfig = {
   image: string;
   imageBackgroundColor?: string;
   link: string;
-  kicker: string;
   title: string;
   description: string;
   backgroundColor: string;
@@ -75,7 +74,6 @@ const DEFAULT_CARD: CardConfig = {
   id: "brand-strategy",
   image: "https://i.imgur.com/yBjZFmf.png",
   link: "",
-  kicker: "",
   title: "",
   description: "",
   backgroundColor: "#ffffff",
@@ -96,7 +94,6 @@ const LEGACY_SECOND_CARD: CardConfig = {
   id: "web-experience",
   image: "https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=1200&q=85",
   link: "https://example.com/web",
-  kicker: "DIGITAL EXPERIENCE",
   title: "让网页成为品牌最好用的名片",
   description: "兼顾叙事、转化与速度，做一套真正能长期使用的数字体验。",
   backgroundColor: "#efffe8",
@@ -216,7 +213,7 @@ function buildFlexMessage(state: BuilderState) {
           type: "bubble",
           hero: {
             type: "image",
-            url: safeUri(card.image) === card.image.trim() ? card.image.trim() : placeholderImage(card.kicker),
+            url: safeUri(card.image) === card.image.trim() ? card.image.trim() : placeholderImage(card.title),
             size: "full",
             aspectRatio: settings.ratio || "20:13",
             aspectMode: "fit",
@@ -230,15 +227,6 @@ function buildFlexMessage(state: BuilderState) {
             backgroundColor: card.backgroundColor || "#ffffff",
             action: { type: "uri", uri: cardTarget },
             contents: [
-              ...(card.kicker
-                ? [{
-                    type: "text",
-                    text: card.kicker,
-                    size: "xxs",
-                    color: "#06c755",
-                    weight: "bold",
-                  }]
-                : []),
               {
                 type: "text",
                 text: card.title || "未命名卡片",
@@ -361,7 +349,6 @@ function normalizeImported(raw: unknown): BuilderState {
     id: newId(`import-card-${cardIndex + 1}`),
     image: String(card.image || ""),
     link: String(card.link || "https://line.me"),
-    kicker: "",
     title: String(card.title || "未命名卡片"),
     description: String(card.desc || card.description || ""),
     backgroundColor: String(card.bgColor || card.backgroundColor || "#ffffff"),
@@ -517,7 +504,6 @@ export default function Home() {
       id: newId("card"),
       image: "",
       link: "",
-      kicker: "",
       title: "",
       description: "",
       backgroundColor: "#ffffff",
@@ -636,7 +622,6 @@ export default function Home() {
             </div>
 
             <div className="section-content form-stack">
-              <label htmlFor="card-kicker"><span>眉标题</span><input id="card-kicker" value={activeCard.kicker} onChange={(event) => updateCard("kicker", event.target.value)} /></label>
               <label htmlFor="card-title"><span>主标题</span><input id="card-title" value={activeCard.title} onChange={(event) => updateCard("title", event.target.value)} /></label>
               <label htmlFor="card-description"><span>说明文字</span><textarea id="card-description" rows={3} value={activeCard.description} onChange={(event) => updateCard("description", event.target.value)} /></label>
               <div className="image-upload-field">
@@ -739,10 +724,9 @@ export default function Home() {
                         }
                       }} onError={(event) => { event.currentTarget.style.display = "none"; }} />
                     </>}
-                    <div className="visual-fallback"><span>{activeCard.kicker}</span><small>{String(activeIndex + 1).padStart(2, "0")}</small></div>
+                    <div className="visual-fallback"><small>{String(activeIndex + 1).padStart(2, "0")}</small></div>
                   </div>
                   <div className="card-body">
-                    {activeCard.kicker && <span className="preview-kicker">{activeCard.kicker}</span>}
                     <h3 style={{ color: activeCard.titleColor }}>{activeCard.title}</h3>
                     <p style={{ color: activeCard.descriptionColor }}>{activeCard.description}</p>
                     <div className="preview-buttons">
