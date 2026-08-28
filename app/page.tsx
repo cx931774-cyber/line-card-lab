@@ -61,6 +61,56 @@ const FONT_SIZES: FontSize[] = ["xxs", "xs", "sm", "md", "lg", "xl", "xxl", "3xl
 const COMPAT_SHARE_PAGE = "https://liff.line.me/1654437282-A1Bj7p4a/share-json5gzip.html";
 const COMPAT_TEMPLATE = "https://taichunmin.idv.tw/liff-businesscard/cards/line-carousel-1.txt";
 
+const LEGACY_SECOND_BUTTON: CardButton = {
+  id: "strategy-work",
+  text: "查看服务与案例",
+  link: "https://example.com/work",
+  color: "#167a47",
+  style: "link",
+};
+
+const DEFAULT_CARD: CardConfig = {
+  id: "brand-strategy",
+  image: "https://images.unsplash.com/photo-1523726491678-bf852e717f6a?auto=format&fit=crop&w=1200&q=85",
+  link: "https://example.com/strategy",
+  kicker: "BRAND STRATEGY",
+  title: "把想法，变成会被记住的品牌",
+  description: "从定位、语言到视觉系统，整理出清楚且一致的品牌表达。",
+  backgroundColor: "#ffffff",
+  titleColor: "#111815",
+  descriptionColor: "#69716d",
+  buttons: [
+    {
+      id: "strategy-book",
+      text: "预约品牌咨询",
+      link: "https://example.com/book",
+      color: "#06c755",
+      style: "primary",
+    },
+  ],
+};
+
+const LEGACY_SECOND_CARD: CardConfig = {
+  id: "web-experience",
+  image: "https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=1200&q=85",
+  link: "https://example.com/web",
+  kicker: "DIGITAL EXPERIENCE",
+  title: "让网页成为品牌最好用的名片",
+  description: "兼顾叙事、转化与速度，做一套真正能长期使用的数字体验。",
+  backgroundColor: "#efffe8",
+  titleColor: "#102117",
+  descriptionColor: "#516057",
+  buttons: [
+    {
+      id: "web-plan",
+      text: "查看网页方案",
+      link: "https://example.com/web-plan",
+      color: "#102117",
+      style: "primary",
+    },
+  ],
+};
+
 const DEFAULT_STATE: BuilderState = {
   version: 1,
   settings: {
@@ -72,56 +122,18 @@ const DEFAULT_STATE: BuilderState = {
     chatName: "品牌咨询",
     liffId: "",
   },
-  cards: [
-    {
-      id: "brand-strategy",
-      image: "https://images.unsplash.com/photo-1523726491678-bf852e717f6a?auto=format&fit=crop&w=1200&q=85",
-      link: "https://example.com/strategy",
-      kicker: "BRAND STRATEGY",
-      title: "把想法，变成会被记住的品牌",
-      description: "从定位、语言到视觉系统，整理出清楚且一致的品牌表达。",
-      backgroundColor: "#ffffff",
-      titleColor: "#111815",
-      descriptionColor: "#69716d",
-      buttons: [
-        {
-          id: "strategy-book",
-          text: "预约品牌咨询",
-          link: "https://example.com/book",
-          color: "#06c755",
-          style: "primary",
-        },
-        {
-          id: "strategy-work",
-          text: "查看服务与案例",
-          link: "https://example.com/work",
-          color: "#167a47",
-          style: "link",
-        },
-      ],
-    },
-    {
-      id: "web-experience",
-      image: "https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=1200&q=85",
-      link: "https://example.com/web",
-      kicker: "DIGITAL EXPERIENCE",
-      title: "让网页成为品牌最好用的名片",
-      description: "兼顾叙事、转化与速度，做一套真正能长期使用的数字体验。",
-      backgroundColor: "#efffe8",
-      titleColor: "#102117",
-      descriptionColor: "#516057",
-      buttons: [
-        {
-          id: "web-plan",
-          text: "查看网页方案",
-          link: "https://example.com/web-plan",
-          color: "#102117",
-          style: "primary",
-        },
-      ],
-    },
-  ],
+  cards: [DEFAULT_CARD],
 };
+
+function migrateLegacyDefault(state: BuilderState) {
+  const legacyCards = [
+    { ...DEFAULT_CARD, buttons: [...DEFAULT_CARD.buttons, LEGACY_SECOND_BUTTON] },
+    LEGACY_SECOND_CARD,
+  ];
+  return JSON.stringify(state.cards) === JSON.stringify(legacyCards)
+    ? { ...state, cards: [DEFAULT_CARD] }
+    : state;
+}
 
 function newId(prefix: string) {
   const suffix = typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -369,7 +381,7 @@ export default function Home() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const normalized = normalizeImported(JSON.parse(saved));
+        const normalized = migrateLegacyDefault(normalizeImported(JSON.parse(saved)));
         setBuilder(normalized);
         setActiveCardId(normalized.cards[0].id);
       }
