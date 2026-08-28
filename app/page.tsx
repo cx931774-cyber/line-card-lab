@@ -217,7 +217,7 @@ function buildFlexMessage(state: BuilderState) {
             type: "image",
             url: safeUri(card.image) === card.image.trim() ? card.image.trim() : placeholderImage(card.title),
             size: "full",
-            aspectRatio: settings.ratio || "20:13",
+            aspectRatio: settings.ratio || "20:20",
             aspectMode: "fit",
             backgroundColor: card.imageBackgroundColor || card.backgroundColor || "#111815",
             action: { type: "uri", uri: cardTarget },
@@ -421,7 +421,6 @@ export default function Home() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const normalized = migrateLegacyDefault(normalizeImported(JSON.parse(saved)));
-        normalized.settings.ratio = "20:20";
         normalized.settings.chatName = normalized.settings.chatName || "官网邀请";
         setBuilder(normalized);
         setActiveCardId(normalized.cards[0].id);
@@ -604,7 +603,7 @@ export default function Home() {
             </button>
             {settingsOpen && (
               <div className="section-content settings-grid">
-                <label htmlFor="ratio"><span>图片比例（固定）</span><input id="ratio" value="20:20" readOnly /></label>
+                <label htmlFor="ratio"><span>图片比例</span><input id="ratio" value={builder.settings.ratio} onChange={(event) => updateSettings("ratio", event.target.value)} placeholder="20:20" /></label>
                 <label htmlFor="chat-name"><span>预览聊天名称</span><input id="chat-name" value={builder.settings.chatName} onChange={(event) => updateSettings("chatName", event.target.value)} /></label>
                 <label htmlFor="title-size"><span>标题字号</span><select id="title-size" value={builder.settings.titleSize} onChange={(event) => updateSettings("titleSize", event.target.value as FontSize)}>{FONT_SIZES.map((size) => <option key={size}>{size}</option>)}</select></label>
                 <label htmlFor="desc-size"><span>说明字号</span><select id="desc-size" value={builder.settings.descriptionSize} onChange={(event) => updateSettings("descriptionSize", event.target.value as FontSize)}>{FONT_SIZES.map((size) => <option key={size}>{size}</option>)}</select></label>
