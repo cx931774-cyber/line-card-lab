@@ -57,7 +57,7 @@ declare global {
   }
 }
 
-const STORAGE_KEY = "line-card-lab:v4";
+const STORAGE_KEY = "line-card-lab:v5";
 const FONT_SIZES: FontSize[] = ["xxs", "xs", "sm", "md", "lg", "xl", "xxl", "3xl", "4xl", "5xl"];
 const COMPAT_SHARE_PAGE = "https://liff.line.me/1654437282-A1Bj7p4a/share-json5gzip.html";
 const COMPAT_TEMPLATE = "https://taichunmin.idv.tw/liff-businesscard/cards/line-carousel-1.txt";
@@ -114,7 +114,7 @@ const DEFAULT_STATE: BuilderState = {
   version: 1,
   settings: {
     altText: "",
-    ratio: "20:20",
+    ratio: "20:13",
     titleSize: "xl",
     descriptionSize: "sm",
     buttonHeight: "sm",
@@ -217,7 +217,7 @@ function buildFlexMessage(state: BuilderState) {
             type: "image",
             url: safeUri(card.image) === card.image.trim() ? card.image.trim() : placeholderImage(card.title),
             size: "full",
-            aspectRatio: settings.ratio || "20:20",
+            aspectRatio: settings.ratio || "20:13",
             aspectMode: "fit",
             backgroundColor: card.imageBackgroundColor || card.backgroundColor || "#111815",
             action: { type: "uri", uri: cardTarget },
@@ -603,7 +603,7 @@ export default function Home() {
             </button>
             {settingsOpen && (
               <div className="section-content settings-grid">
-                <label htmlFor="ratio"><span>图片比例</span><input id="ratio" value={builder.settings.ratio} onChange={(event) => updateSettings("ratio", event.target.value)} placeholder="20:20" /></label>
+                <label htmlFor="ratio"><span>图片比例</span><input id="ratio" value={builder.settings.ratio} onChange={(event) => updateSettings("ratio", event.target.value)} placeholder="20:13" /></label>
                 <label htmlFor="chat-name"><span>预览聊天名称</span><input id="chat-name" value={builder.settings.chatName} onChange={(event) => updateSettings("chatName", event.target.value)} /></label>
                 <label htmlFor="title-size"><span>标题字号</span><select id="title-size" value={builder.settings.titleSize} onChange={(event) => updateSettings("titleSize", event.target.value as FontSize)}>{FONT_SIZES.map((size) => <option key={size}>{size}</option>)}</select></label>
                 <label htmlFor="desc-size"><span>说明字号</span><select id="desc-size" value={builder.settings.descriptionSize} onChange={(event) => updateSettings("descriptionSize", event.target.value as FontSize)}>{FONT_SIZES.map((size) => <option key={size}>{size}</option>)}</select></label>
