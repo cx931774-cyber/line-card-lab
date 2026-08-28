@@ -234,7 +234,9 @@ input:focus, textarea:focus, select:focus { border-color: var(--line-green); bac
 .price-card em { flex: 1; margin-top: 18px; color: var(--muted); font-size: 10px; font-style: normal; }
 .price-card a, .price-card button { border: 0; border-radius: 9px; background: var(--ink); color: white; padding: 10px; text-align: center; text-decoration: none; font-size: 10px; font-weight: 800; cursor: pointer; }
 .price-card button:disabled { background: #cbd0c9; cursor: default; }
+.recharge-modal-backdrop { position: fixed; z-index: 80; inset: 0; display: grid; place-items: center; overflow-y: auto; background: rgba(17,24,21,.64); padding: 20px; backdrop-filter: blur(4px); }
 .recharge-panel { margin-top: 14px; border: 1px solid var(--line-green); border-radius: 14px; background: rgba(255,255,255,.72); padding: 17px; }
+.recharge-modal { width: min(440px, 100%); max-height: calc(100dvh - 40px); overflow-y: auto; margin: 0; background: var(--paper); box-shadow: 0 24px 80px rgba(0,0,0,.32); }
 .recharge-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
 .recharge-brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
 .recharge-brand > img { width: 44px; height: 44px; flex: 0 0 44px; border: 1px solid var(--soft-border); border-radius: 12px; background: white; object-fit: contain; }

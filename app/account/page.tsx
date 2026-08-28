@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-html-link-for-pages */
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 type Account = {
   id: string;
@@ -30,6 +30,7 @@ export default function AccountPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({ email: "", password: "" });
+  const closeRechargeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -54,6 +55,21 @@ export default function AccountPage() {
     void loadAccount();
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    if (!selectedPlan) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedPlan(null);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    window.requestAnimationFrame(() => closeRechargeRef.current?.focus());
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [selectedPlan]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -123,9 +139,11 @@ export default function AccountPage() {
             </article>
           ))}
         </div>
-        {account && !account.vip && selectedPlan && (
-          <section className="recharge-panel" role="dialog" aria-label="USDT 充值信息">
-            <div className="recharge-heading"><div className="recharge-brand">{payment.usdtLogoUrl && <img src={payment.usdtLogoUrl} alt="USDT" />}<div><small>USDT PAYMENT</small><h2>{selectedPlan.name}</h2></div></div><button type="button" aria-label="关闭充值信息" onClick={() => setSelectedPlan(null)}>×</button></div>
+      </section>
+      {account && !account.vip && selectedPlan && (
+        <div className="recharge-modal-backdrop" onClick={(event) => { if (event.target === event.currentTarget) setSelectedPlan(null); }}>
+          <section className="recharge-panel recharge-modal" role="dialog" aria-modal="true" aria-label="USDT 充值信息">
+            <div className="recharge-heading"><div className="recharge-brand">{payment.usdtLogoUrl && <img src={payment.usdtLogoUrl} alt="USDT" />}<div><small>USDT PAYMENT</small><h2>{selectedPlan.name}</h2></div></div><button ref={closeRechargeRef} type="button" aria-label="关闭充值信息" onClick={() => setSelectedPlan(null)}>×</button></div>
             <p className="recharge-amount">应付金额 <strong>{selectedPlan.price} USDT</strong></p>
             {payment.usdtAddress ? <>
               <dl><div><dt>链网络</dt><dd>{payment.usdtNetwork}</dd></div><div><dt>USDT 收款地址</dt><dd><code>{payment.usdtAddress}</code></dd></div></dl>
@@ -133,8 +151,8 @@ export default function AccountPage() {
               <p className="recharge-note">请确认充值网络与上方一致。转错网络可能导致资产无法找回。</p>
             </> : <p className="recharge-unavailable">管理员尚未设置 USDT 充值地址。</p>}
           </section>
-        )}
-      </section>
+        </div>
+      )}
     </main>
   );
 }
