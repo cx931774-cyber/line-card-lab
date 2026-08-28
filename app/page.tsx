@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type FontSize = "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "3xl" | "4xl" | "5xl";
 type ButtonStyle = "primary" | "secondary" | "link";
@@ -149,6 +149,27 @@ function safeUri(uri: string) {
 
 function placeholderImage(label = "YOUR BRAND") {
   return `https://dummyimage.com/1200x780/06c755/ffffff.png&text=${encodeURIComponent(label)}`;
+}
+
+async function prepareImage(file: File) {
+  const bitmap = await createImageBitmap(file);
+  const maxSide = 1600;
+  const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  const context = canvas.getContext("2d");
+  if (!context) {
+    bitmap.close();
+    throw new Error("浏览器无法处理这张图片");
+  }
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.86));
+  if (!blob) throw new Error("图片处理失败");
+  return blob;
 }
 
 function buildFlexMessage(state: BuilderState) {
@@ -372,6 +393,8 @@ export default function Home() {
   const [loaded, setLoaded] = useState(false);
   const [toast, setToast] = useState("");
   const [sharing, setSharing] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -432,6 +455,30 @@ export default function Home() {
 
   const updateButton = <K extends keyof CardButton>(buttonId: string, key: K, value: CardButton[K]) => {
     updateCard("buttons", activeCard.buttons.map((button) => button.id === buttonId ? { ...button, [key]: value } : button));
+  };
+
+  const uploadImage = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return notify("请选择图片文件");
+    if (file.size > 10 * 1024 * 1024) return notify("图片不能超过 10MB");
+
+    setUploadingImage(true);
+    try {
+      const image = await prepareImage(file);
+      const formData = new FormData();
+      formData.append("file", image, "card-image.jpg");
+      const response = await fetch("/api/images", { method: "POST", body: formData });
+      const result = await response.json() as { url?: string; error?: string };
+      if (!response.ok || !result.url) throw new Error(result.error || "图片上传失败");
+      updateCard("image", result.url);
+      notify("图片已上传");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "图片上传失败");
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const addCard = () => {
@@ -605,7 +652,20 @@ export default function Home() {
               <label htmlFor="card-kicker"><span>眉标题</span><input id="card-kicker" value={activeCard.kicker} onChange={(event) => updateCard("kicker", event.target.value)} /></label>
               <label htmlFor="card-title"><span>主标题</span><input id="card-title" value={activeCard.title} onChange={(event) => updateCard("title", event.target.value)} /></label>
               <label htmlFor="card-description"><span>说明文字</span><textarea id="card-description" rows={3} value={activeCard.description} onChange={(event) => updateCard("description", event.target.value)} /></label>
-              <label htmlFor="card-image"><span>图片网址（HTTPS）</span><input id="card-image" value={activeCard.image} onChange={(event) => updateCard("image", event.target.value)} placeholder="https://..." /></label>
+              <div className="image-upload-field">
+                <span className="field-label">卡片图片</span>
+                <input ref={imageInputRef} className="image-file-input" id="card-image" type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadImage} />
+                <div className="image-upload-control">
+                  <div className="image-upload-thumb">
+                    {activeCard.image ? <img key={activeCard.image} src={activeCard.image} alt="当前卡片图片" /> : <span>暂无图片</span>}
+                  </div>
+                  <div className="image-upload-actions">
+                    <button type="button" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage}>{uploadingImage ? "上传中…" : activeCard.image ? "更换图片" : "选择图片"}</button>
+                    {activeCard.image && <button className="remove-image" type="button" onClick={() => updateCard("image", "")} disabled={uploadingImage}>移除</button>}
+                    <small>支持 JPG、PNG、WebP，最大 10MB</small>
+                  </div>
+                </div>
+              </div>
               <label htmlFor="card-link"><span>点击整张卡片时打开</span><input id="card-link" value={activeCard.link} onChange={(event) => updateCard("link", event.target.value)} placeholder="https://..." /></label>
 
               <div className="color-grid">
@@ -674,7 +734,7 @@ export default function Home() {
                 <div className="chat-time">今天 10:24</div>
                 <article className="line-card" style={{ background: activeCard.backgroundColor }}>
                   <div className="card-visual" style={{ aspectRatio: builder.settings.ratio.replace(":", " / ") }}>
-                    {activeCard.image && <img src={activeCard.image} alt="" onError={(event) => { event.currentTarget.style.display = "none"; }} />}
+                    {activeCard.image && <img key={activeCard.image} src={activeCard.image} alt="" onLoad={(event) => { event.currentTarget.style.display = "block"; }} onError={(event) => { event.currentTarget.style.display = "none"; }} />}
                     <div className="visual-fallback"><span>{activeCard.kicker || "YOUR BRAND"}</span><small>{String(activeIndex + 1).padStart(2, "0")}</small></div>
                   </div>
                   <div className="card-body">
