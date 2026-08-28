@@ -89,7 +89,6 @@ export default function AccountPage() {
       <header className="topbar"><Link className="brand" href="/"><span className="brand-mark">L</span><span>LINE 卡片实验室</span></Link></header>
       <div className="account-return"><Link href="/">← 返回样板列表</Link></div>
       <section className="account-page">
-        <div className="account-heading"><small>VIP ACCESS</small><h1>账户与 VIP</h1><p>无需登录即可制作并实时预览；开通 VIP 后即可分享到 LINE。</p></div>
         {!loading && account ? (
           <div className="account-status">
             <div><strong>{account.displayName}</strong><span>{account.email}</span></div>

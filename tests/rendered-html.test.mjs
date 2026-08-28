@@ -28,7 +28,7 @@ test("renders the login and VIP pricing page", async () => {
   const response = await render("/account");
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /账户与 VIP/);
+  assert.doesNotMatch(html, /VIP ACCESS|账户与 VIP/);
   assert.match(html, /月度 VIP/);
   assert.match(html, /年度 VIP/);
   assert.match(html, /永久 VIP/);
