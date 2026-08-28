@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 
 type FontSize = "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "3xl" | "4xl" | "5xl";
 type ButtonStyle = "primary" | "secondary" | "link";
@@ -48,6 +48,14 @@ type Account = {
   role: "user" | "admin";
   plan: "free" | "monthly" | "annual" | "lifetime";
   vip: boolean;
+};
+
+type FavoriteSummary = {
+  id: string;
+  name: string;
+  previewImage: string | null;
+  createdAt: number;
+  updatedAt: number;
 };
 
 const STORAGE_KEY = "line-card-lab:v5";
@@ -386,8 +394,24 @@ export default function Home() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageSourceMode, setImageSourceMode] = useState<ImageSourceMode>("url");
   const [account, setAccount] = useState<Account | null | undefined>(undefined);
+  const [favorites, setFavorites] = useState<FavoriteSummary[]>([]);
+  const [favoritesOpen, setFavoritesOpen] = useState(false);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
+  const [savingFavorite, setSavingFavorite] = useState(false);
+  const [activeFavoriteId, setActiveFavoriteId] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const refreshFavorites = useCallback(async () => {
+    setFavoritesLoading(true);
+    try {
+      const response = await fetch("/api/favorites", { cache: "no-store" });
+      const data = await response.json() as { favorites?: FavoriteSummary[] };
+      if (response.ok) setFavorites(data.favorites || []);
+    } finally {
+      setFavoritesLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const syncView = () => setShowEditor(new URLSearchParams(window.location.search).get("template") === "custom-line-carousel");
@@ -402,6 +426,11 @@ export default function Home() {
       .then((data: { user?: Account | null }) => setAccount(data.user || null))
       .catch(() => setAccount(null));
   }, []);
+
+  useEffect(() => {
+    if (account) void refreshFavorites();
+    else if (account === null) setFavorites([]);
+  }, [account, refreshFavorites]);
 
   useEffect(() => {
     if (account !== null || new URLSearchParams(window.location.search).get("template") !== "custom-line-carousel") return;
@@ -448,6 +477,57 @@ export default function Home() {
     setToast(message);
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(""), 2800);
+  };
+
+  const saveFavorite = async (asNew = false) => {
+    setSavingFavorite(true);
+    try {
+      const favoriteId = asNew ? null : activeFavoriteId;
+      const response = await fetch(favoriteId ? `/api/favorites/${favoriteId}` : "/api/favorites", {
+        method: favoriteId ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: builder.cards[0]?.title || "未命名卡片", state: builder }),
+      });
+      const data = await response.json() as { favorite?: FavoriteSummary; error?: string };
+      if (!response.ok || !data.favorite) throw new Error(data.error || "收藏失败");
+      setActiveFavoriteId(data.favorite.id);
+      await refreshFavorites();
+      notify(favoriteId ? "收藏已更新" : "卡片已收藏");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "收藏失败");
+    } finally {
+      setSavingFavorite(false);
+    }
+  };
+
+  const loadFavorite = async (favoriteId: string) => {
+    try {
+      const response = await fetch(`/api/favorites/${favoriteId}`, { cache: "no-store" });
+      const data = await response.json() as { favorite?: { state?: unknown }; error?: string };
+      if (!response.ok || !data.favorite?.state) throw new Error(data.error || "读取收藏失败");
+      const restored = normalizeImported(data.favorite.state);
+      setBuilder(restored);
+      setActiveCardId(restored.cards[0].id);
+      setActiveFavoriteId(favoriteId);
+      setFavoritesOpen(false);
+      notify("已恢复收藏，可继续编辑");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "读取收藏失败");
+    }
+  };
+
+  const deleteFavorite = async (favorite: FavoriteSummary) => {
+    if (!window.confirm(`确定删除收藏“${favorite.name}”吗？`)) return;
+    try {
+      const response = await fetch(`/api/favorites/${favorite.id}`, { method: "DELETE" });
+      const data = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(data.error || "删除失败");
+      if (activeFavoriteId === favorite.id) setActiveFavoriteId(null);
+      setFavorites((current) => current.filter((item) => item.id !== favorite.id));
+      notify("收藏已删除");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "删除失败");
+    }
   };
 
   const updateSettings = <K extends keyof BuilderSettings>(key: K, value: BuilderSettings[K]) => {
@@ -588,7 +668,29 @@ export default function Home() {
 
       <div className="editor-return-row">
         <button className="catalog-back" type="button" onClick={openCatalog}>← 返回样板列表</button>
+        <div className="favorite-actions">
+          <button className="favorite-save" type="button" disabled={savingFavorite} onClick={() => saveFavorite(false)}>{savingFavorite ? "保存中…" : activeFavoriteId ? "✓ 更新收藏" : "♡ 收藏卡片"}</button>
+          {activeFavoriteId && <button type="button" disabled={savingFavorite} onClick={() => saveFavorite(true)}>＋ 另存为新收藏</button>}
+          <button type="button" aria-expanded={favoritesOpen} onClick={() => setFavoritesOpen((open) => !open)}>我的收藏 {favorites.length ? `(${favorites.length})` : ""}</button>
+        </div>
       </div>
+
+      {favoritesOpen && (
+        <section className="favorites-panel" aria-label="我的卡片收藏">
+          <div className="favorites-heading"><div><small>SAVED CARDS</small><h2>我的收藏</h2></div><button type="button" aria-label="关闭我的收藏" onClick={() => setFavoritesOpen(false)}>×</button></div>
+          {favoritesLoading ? <p className="favorites-empty">正在读取收藏…</p> : favorites.length ? (
+            <div className="favorites-grid">
+              {favorites.map((favorite) => (
+                <article className={favorite.id === activeFavoriteId ? "favorite-item active" : "favorite-item"} key={favorite.id}>
+                  <div className="favorite-thumb">{favorite.previewImage ? <img src={favorite.previewImage} alt="" /> : <span>LINE</span>}</div>
+                  <div className="favorite-meta"><strong>{favorite.name}</strong><span>{new Date(favorite.updatedAt * 1000).toLocaleDateString("zh-CN")} 更新</span></div>
+                  <div className="favorite-item-actions"><button type="button" onClick={() => loadFavorite(favorite.id)}>继续编辑</button><button className="favorite-delete" type="button" onClick={() => deleteFavorite(favorite)}>删除</button></div>
+                </article>
+              ))}
+            </div>
+          ) : <p className="favorites-empty">还没有收藏。编辑完成后点击“收藏卡片”即可保存。</p>}
+        </section>
+      )}
 
       <section className="workspace" aria-label="卡片编辑工作区">
         <div className="editor-panel">

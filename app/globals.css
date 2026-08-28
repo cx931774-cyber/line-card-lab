@@ -38,8 +38,29 @@ button { color: inherit; }
 .topbar-actions { display: flex; align-items: center; gap: 8px; }
 .topbar-actions a, .admin-account-link { border: 1px solid rgba(255,255,255,.22); border-radius: 999px; color: white; padding: 7px 11px; text-decoration: none; font-size: 10px; font-weight: 800; }
 .topbar-actions .account-link.vip { border-color: var(--line-green); background: var(--line-green); }
-.editor-return-row { padding: 14px 3.5vw 0; }
+.editor-return-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 3.5vw 0; }
 .catalog-back { border: 1px solid var(--border); border-radius: 999px; background: transparent; padding: 8px 12px; color: var(--muted); font-size: 10px; font-weight: 700; cursor: pointer; }
+.favorite-actions { display: flex; align-items: center; justify-content: flex-end; gap: 7px; flex-wrap: wrap; }
+.favorite-actions button { border: 1px solid var(--border); border-radius: 999px; background: transparent; padding: 8px 11px; color: var(--muted); font-size: 10px; font-weight: 800; cursor: pointer; }
+.favorite-actions .favorite-save { border-color: var(--line-green); background: var(--line-green); color: white; }
+.favorite-actions button:disabled { opacity: .55; cursor: wait; }
+.favorites-panel { margin: 10px 3.5vw 0; border: 1px solid var(--border); border-radius: 13px; background: rgba(255,255,255,.62); padding: 14px; }
+.favorites-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 11px; }
+.favorites-heading small { color: var(--line-green); font: 800 8px/1 Arial, sans-serif; letter-spacing: .13em; }
+.favorites-heading h2 { margin: 4px 0 0; font-size: 17px; }
+.favorites-heading > button { width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 999px; background: transparent; cursor: pointer; }
+.favorites-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+.favorite-item { display: grid; grid-template-columns: 50px minmax(0,1fr); gap: 9px; border: 1px solid var(--soft-border); border-radius: 10px; background: rgba(255,255,255,.58); padding: 8px; }
+.favorite-item.active { border-color: var(--line-green); box-shadow: inset 0 0 0 1px var(--line-green); }
+.favorite-thumb { grid-row: 1 / span 2; width: 50px; height: 50px; overflow: hidden; display: grid; place-items: center; border-radius: 8px; background: #e3e7e1; color: var(--line-green); font-size: 9px; font-weight: 900; }
+.favorite-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.favorite-meta { min-width: 0; display: grid; align-content: center; gap: 3px; }
+.favorite-meta strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.favorite-meta span { color: var(--muted); font-size: 8px; }
+.favorite-item-actions { grid-column: 2; display: flex; gap: 6px; }
+.favorite-item-actions button { border: 0; border-radius: 7px; background: var(--ink); color: white; padding: 6px 8px; font-size: 8px; font-weight: 800; cursor: pointer; }
+.favorite-item-actions .favorite-delete { background: transparent; color: #bd4a45; padding-inline: 3px; }
+.favorites-empty { margin: 2px 0; color: var(--muted); font-size: 10px; }
 .catalog-page { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 38px 0 60px; }
 .catalog-heading { margin-bottom: 26px; text-align: center; }
 .catalog-heading > span { color: var(--line-green); font: 800 9px/1 Arial, sans-serif; letter-spacing: .14em; }
@@ -267,10 +288,14 @@ input:focus, textarea:focus, select:focus { border-color: var(--line-green); bac
   .preview-panel { grid-column: 1; grid-row: 2; min-height: 720px; border-left: 0; }
   .preview-sticky { position: static; }
   .template-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .favorites-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 620px) {
   .topbar { height: 66px; padding: 0 20px; }
+  .editor-return-row { align-items: flex-start; padding-inline: 20px; }
+  .favorite-actions { max-width: 72%; }
+  .favorites-panel { margin-inline: 20px; }
   .editor-panel, .preview-panel { padding: 30px 20px 52px; }
   .settings-grid, .form-stack, .color-grid, .button-editor, .button-options { grid-template-columns: 1fr; }
   .wide-field { grid-column: auto; }
