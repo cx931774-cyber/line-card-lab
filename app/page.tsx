@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type FontSize = "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "3xl" | "4xl" | "5xl";
 type ButtonStyle = "primary" | "secondary" | "link";
@@ -368,13 +368,10 @@ export default function Home() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [integrationOpen, setIntegrationOpen] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
-  const [configOpen, setConfigOpen] = useState(false);
-  const [configText, setConfigText] = useState("");
   const [compatibilityLink, setCompatibilityLink] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [toast, setToast] = useState("");
   const [sharing, setSharing] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -517,56 +514,6 @@ export default function Home() {
     notify(successMessage);
   };
 
-  const exportConfig = () => {
-    const blob = new Blob([JSON.stringify(builder, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "line-card-config.json";
-    link.click();
-    URL.revokeObjectURL(url);
-    notify("配置文件已导出");
-  };
-
-  const openConfigEditor = () => {
-    setConfigText(JSON.stringify(builder, null, 2));
-    setConfigOpen(true);
-  };
-
-  const importConfigText = () => {
-    try {
-      const normalized = normalizeImported(JSON.parse(configText));
-      setBuilder(normalized);
-      setActiveCardId(normalized.cards[0].id);
-      setConfigOpen(false);
-      notify("配置导入成功");
-    } catch (error) {
-      notify(error instanceof Error ? error.message : "配置导入失败");
-    }
-  };
-
-  const importConfig = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    try {
-      const normalized = normalizeImported(JSON.parse(await file.text()));
-      setBuilder(normalized);
-      setActiveCardId(normalized.cards[0].id);
-      notify("配置导入成功");
-    } catch (error) {
-      notify(error instanceof Error ? error.message : "配置导入失败");
-    } finally {
-      event.target.value = "";
-    }
-  };
-
-  const resetBuilder = () => {
-    if (!window.confirm("确定恢复示例内容吗？当前编辑会被覆盖。")) return;
-    setBuilder(DEFAULT_STATE);
-    setActiveCardId(DEFAULT_STATE.cards[0].id);
-    notify("已恢复示例内容");
-  };
-
   const shareViaLine = async () => {
     const liffId = builder.settings.liffId.trim();
     if (!liffId) {
@@ -606,27 +553,12 @@ export default function Home() {
           <span className="brand-mark">L</span>
           <span>LINE 卡片实验室</span>
         </a>
-        <nav className="top-actions" aria-label="页面操作">
-          <a href="#principle">生成原理</a>
-          <button className="header-copy" type="button" onClick={() => copyText(flexJson, "Flex Message JSON 已复制")}>复制 JSON</button>
-        </nav>
       </header>
-
-      <section className="hero">
-        <div>
-          <p className="eyebrow">FLEX MESSAGE BUILDER · LOCAL FIRST</p>
-          <h1>让每一次分享，<br /><em>都像一张作品。</em></h1>
-        </div>
-        <div className="hero-side">
-          <p>编辑内容、色彩与按钮，实时预览 LINE Carousel。所有草稿只保存在你的浏览器，不会上传。</p>
-          <div className="hero-tags"><span>即时预览</span><span>导入 / 导出</span><span>LIFF 分享</span></div>
-        </div>
-      </section>
 
       <section className="workspace" aria-label="卡片编辑工作区">
         <div className="editor-panel">
           <div className="panel-heading">
-            <div><span className="step">01</span><h2>编辑卡片</h2></div>
+            <div><span className="step">02</span><h2>编辑卡片</h2></div>
             <span className="save-state"><i /> 本机自动保存</span>
           </div>
 
@@ -725,20 +657,13 @@ export default function Home() {
             )}
           </section>
 
-          <div className="utility-actions">
-            <input ref={fileInputRef} className="visually-hidden" type="file" accept="application/json,.json" onChange={importConfig} />
-            <button type="button" onClick={openConfigEditor}>导出 / 导入</button>
-            <button type="button" onClick={() => fileInputRef.current?.click()}>从文件导入</button>
-            <button type="button" onClick={exportConfig}>下载配置</button>
-            <button type="button" onClick={resetBuilder}>恢复示例</button>
-          </div>
         </div>
 
         <aside className="preview-panel">
           <div className="preview-sticky">
             <div className="panel-heading inverse">
-              <div><span className="step">02</span><h2>LINE 预览</h2></div>
-              <span className="card-count">{activeIndex + 1} / {builder.cards.length}</span>
+              <div><span className="step">01</span><h2>LINE 实时预览</h2></div>
+              <span className="card-count">输入即更新 · {activeIndex + 1} / {builder.cards.length}</span>
             </div>
 
             <div className="phone-stage">
@@ -778,35 +703,6 @@ export default function Home() {
         </aside>
       </section>
 
-      <section className="principle" id="principle">
-        <div className="principle-intro">
-          <p className="eyebrow">HOW IT WORKS</p>
-          <h2>从表单到 LINE 卡片，<br />核心只有四步。</h2>
-          <p>参考页面把编辑器状态压缩进 LIFF 链接，再由模板还原成 Flex Message。本页面直接生成同一类标准 JSON，并可接入你自己的 LIFF。</p>
-        </div>
-        <ol>
-          <li><span>01</span><div><b>编辑状态</b><p>标题、图片、颜色与按钮组成结构化配置。</p></div></li>
-          <li><span>02</span><div><b>映射组件</b><p>每张卡片成为 bubble，全部卡片组成 carousel。</p></div></li>
-          <li><span>03</span><div><b>导出 JSON</b><p>浏览器即时生成 LINE Messaging API 可用的 Flex Message。</p></div></li>
-          <li><span>04</span><div><b>LIFF 分享</b><p>填入自己的 LIFF ID 后，调用 shareTargetPicker 选择好友。</p></div></li>
-        </ol>
-      </section>
-
-      <footer><div className="brand"><span className="brand-mark">L</span><span>LINE 卡片实验室</span></div><p>草稿保存在本机 · 不上传编辑内容</p></footer>
-      {configOpen && (
-        <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setConfigOpen(false); }}>
-          <section className="config-modal" role="dialog" aria-modal="true" aria-labelledby="config-modal-title">
-            <div className="config-modal-head"><div><small>CONFIGURATION</small><h2 id="config-modal-title">导出 / 导入配置</h2></div><button type="button" onClick={() => setConfigOpen(false)} aria-label="关闭">×</button></div>
-            <p>复制下方配置做备份；也可以粘贴本页面或原生成器导出的配置，再点“导入配置”。</p>
-            <textarea value={configText} onChange={(event) => setConfigText(event.target.value)} spellCheck={false} aria-label="卡片配置 JSON" />
-            <div className="config-modal-actions">
-              <button type="button" onClick={() => copyText(configText, "配置已复制")}>复制</button>
-              <button type="button" onClick={() => setConfigOpen(false)}>关闭</button>
-              <button className="confirm" type="button" onClick={importConfigText}>导入配置</button>
-            </div>
-          </section>
-        </div>
-      )}
       <div className={`toast ${toast ? "show" : ""}`} role="status">{toast}</div>
     </main>
   );
