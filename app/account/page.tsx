@@ -14,9 +14,9 @@ type Account = {
 };
 
 const PLANS = [
-  { id: "monthly", name: "月度 VIP", price: 49, unit: "/ 月", note: "开通后使用 30 天" },
-  { id: "annual", name: "年度 VIP", price: 300, unit: "/ 年", note: "开通后使用 365 天" },
-  { id: "lifetime", name: "永久 VIP", price: 588, unit: "一次付费", note: "永久使用全部功能" },
+  { id: "monthly", name: "月度 VIP", price: 19.9, unit: "/ 月", note: "开通后使用 30 天" },
+  { id: "annual", name: "年度 VIP", price: 89, unit: "/ 年", note: "开通后使用 365 天" },
+  { id: "lifetime", name: "永久 VIP", price: 299, unit: "一次付费", note: "永久使用全部功能" },
 ] as const;
 type VipPlan = (typeof PLANS)[number];
 

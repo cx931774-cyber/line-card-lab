@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     {
       user,
       ...payment,
-      prices: { monthly: 49, annual: 300, lifetime: 588 },
+      prices: { monthly: 19.9, annual: 89, lifetime: 299 },
     },
     { headers: { "Cache-Control": "private, no-store" } },
   );

@@ -32,9 +32,9 @@ test("renders the login and VIP pricing page", async () => {
   assert.match(html, /月度 VIP/);
   assert.match(html, /年度 VIP/);
   assert.match(html, /永久 VIP/);
-  assert.match(html, /49/);
-  assert.match(html, /300/);
-  assert.match(html, /588/);
+  assert.match(html, /19\.9/);
+  assert.match(html, /89/);
+  assert.match(html, /299/);
 });
 
 test("renders USDT payment settings in the admin shell", async () => {
