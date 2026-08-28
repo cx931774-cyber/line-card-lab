@@ -22,10 +22,22 @@ export async function POST(request: Request) {
   const id = crypto.randomUUID();
   const now = Math.floor(Date.now() / 1000);
   const { hash, salt } = await hashPassword(password);
-  await database().prepare(`
+  const db = database();
+  await db.prepare(`
     INSERT INTO users (id, email, display_name, password_hash, password_salt, role, plan, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, 'admin', 'lifetime', ?, ?)
+    ON CONFLICT(email) DO UPDATE SET
+      display_name = excluded.display_name,
+      password_hash = excluded.password_hash,
+      password_salt = excluded.password_salt,
+      role = 'admin',
+      plan = 'lifetime',
+      vip_expires_at = NULL,
+      updated_at = excluded.updated_at
   `).bind(id, email, displayName, hash, salt, now, now).run();
-  const token = await createSession(id);
+  const admin = await db.prepare("SELECT id FROM users WHERE email = ?").bind(email).first<{ id: string }>();
+  if (!admin) return Response.json({ error: "管理员建立失败" }, { status: 500 });
+  await db.prepare("DELETE FROM sessions WHERE user_id = ?").bind(admin.id).run();
+  const token = await createSession(admin.id);
   return Response.json({ ok: true }, { headers: { "Set-Cookie": sessionCookie(token) } });
 }
