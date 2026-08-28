@@ -98,6 +98,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--line-green); bac
 .image-upload-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
 .image-upload-actions button { border: 0; border-radius: 8px; background: var(--ink); color: white; padding: 8px 11px; font-size: 10px; font-weight: 700; cursor: pointer; }
 .image-upload-actions button:disabled { opacity: .55; cursor: wait; }
+.image-size-hint { color: var(--muted); font-size: 10px; white-space: nowrap; }
 .image-upload-actions .remove-image { background: transparent; color: #bd4a45; padding-inline: 4px; }
 .image-upload-actions small { flex-basis: 100%; color: var(--muted); font-size: 9px; }
 

@@ -152,6 +152,14 @@ function placeholderImage(label = "YOUR BRAND") {
   return `https://dummyimage.com/1200x780/06c755/ffffff.png&text=${encodeURIComponent(label)}`;
 }
 
+function recommendedImageSize(ratio: string) {
+  const [rawWidth, rawHeight] = ratio.split(":").map(Number);
+  if (!rawWidth || !rawHeight || rawWidth <= 0 || rawHeight <= 0) return "1000 × 650 px";
+  const longestSide = 1000;
+  if (rawWidth >= rawHeight) return `${longestSide} × ${Math.round(longestSide * rawHeight / rawWidth)} px`;
+  return `${Math.round(longestSide * rawWidth / rawHeight)} × ${longestSide} px`;
+}
+
 function imageEdgeColor(image: HTMLImageElement) {
   const sampleSize = 32;
   const canvas = document.createElement("canvas");
@@ -182,7 +190,7 @@ function imageEdgeColor(image: HTMLImageElement) {
 
 async function prepareImage(file: File) {
   const bitmap = await createImageBitmap(file);
-  const maxSide = 1600;
+  const maxSide = 1024;
   const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(bitmap.width * scale));
@@ -463,6 +471,7 @@ export default function Home() {
   const activeCard = builder.cards[activeIndex] || builder.cards[0];
   const flexMessage = useMemo(() => buildFlexMessage(builder), [builder]);
   const flexJson = useMemo(() => JSON.stringify(flexMessage, null, 2), [flexMessage]);
+  const imageSizeRecommendation = useMemo(() => recommendedImageSize(builder.settings.ratio), [builder.settings.ratio]);
 
   const notify = (message: string) => {
     setToast(message);
@@ -693,6 +702,7 @@ export default function Home() {
                   </div>
                   <div className="image-upload-actions">
                     <button type="button" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage}>{uploadingImage ? "上传中…" : activeCard.image ? "更换图片" : "选择图片"}</button>
+                    <span className="image-size-hint">推荐 {imageSizeRecommendation}</span>
                     {activeCard.image && <button className="remove-image" type="button" onClick={() => updateCard("image", "")} disabled={uploadingImage}>移除</button>}
                     <small>支持 JPG、PNG、WebP，最大 10MB</small>
                   </div>
