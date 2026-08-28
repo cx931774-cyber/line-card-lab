@@ -130,7 +130,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--line-green); bac
 .chat-time { margin: 1px 0 11px; text-align: center; color: rgba(255,255,255,.72); font-size: 9px; }
 .line-card { overflow: hidden; margin: 0 7px; border-radius: 18px; color: var(--ink); box-shadow: 0 16px 30px rgba(24,32,36,.18); }
 .card-visual { position: relative; min-height: 158px; overflow: hidden; background: linear-gradient(135deg, #d8ff5f 0%, #06c755 62%, #008f50 100%); }
-.card-visual img { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.card-visual img { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; object-fit: contain; background: white; }
 .visual-fallback { position: absolute; z-index: 1; inset: 0; display: flex; align-items: flex-end; padding: 23px; color: #0b2b1a; }
 .visual-fallback::after { content: ""; position: absolute; width: 150px; height: 150px; right: -28px; top: -38px; border: 1px solid rgba(255,255,255,.6); border-radius: 50%; box-shadow: 0 0 0 32px rgba(255,255,255,.08), 0 0 0 64px rgba(255,255,255,.06); }
 .visual-fallback span { max-width: 220px; font: 800 33px/.88 Arial, sans-serif; letter-spacing: -.08em; }

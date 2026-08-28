@@ -188,7 +188,7 @@ function buildFlexMessage(state: BuilderState) {
             url: safeUri(card.image) === card.image.trim() ? card.image.trim() : placeholderImage(card.kicker),
             size: "full",
             aspectRatio: settings.ratio || "20:13",
-            aspectMode: "cover",
+            aspectMode: "fit",
             action: { type: "uri", uri: safeUri(card.link) },
           },
           body: {
