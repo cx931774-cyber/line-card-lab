@@ -5,7 +5,7 @@ export async function GET(
   context: { params: Promise<{ key: string }> },
 ) {
   const { key } = await context.params;
-  if (!/^[0-9a-f-]{36}\.jpg$/i.test(key)) {
+  if (!/^(?:usdt-logo-)?[0-9a-f-]{36}\.(?:jpg|png|webp)$/i.test(key)) {
     return new Response("Not found", { status: 404 });
   }
 

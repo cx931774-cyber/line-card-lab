@@ -22,7 +22,7 @@ type VipPlan = (typeof PLANS)[number];
 
 export default function AccountPage() {
   const [account, setAccount] = useState<Account | null>(null);
-  const [payment, setPayment] = useState({ usdtAddress: "", usdtNetwork: "" });
+  const [payment, setPayment] = useState({ usdtAddress: "", usdtNetwork: "", usdtLogoUrl: "" });
   const [selectedPlan, setSelectedPlan] = useState<VipPlan | null>(null);
   const [copyMessage, setCopyMessage] = useState("");
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -38,10 +38,10 @@ export default function AccountPage() {
         try {
           const response = await fetch(`/api/auth/me?refresh=${Date.now()}`, { cache: "no-store" });
           if (!response.ok) throw new Error("account request failed");
-          const data = await response.json() as { user: Account | null; usdtAddress: string; usdtNetwork: string };
+          const data = await response.json() as { user: Account | null; usdtAddress: string; usdtNetwork: string; usdtLogoUrl: string };
           if (!active) return;
           setAccount(data.user);
-          setPayment({ usdtAddress: data.usdtAddress || "", usdtNetwork: data.usdtNetwork || "" });
+          setPayment({ usdtAddress: data.usdtAddress || "", usdtNetwork: data.usdtNetwork || "", usdtLogoUrl: data.usdtLogoUrl || "" });
           setError("");
           setLoading(false);
           return;
@@ -125,7 +125,7 @@ export default function AccountPage() {
         </div>
         {account && !account.vip && selectedPlan && (
           <section className="recharge-panel" role="dialog" aria-label="USDT 充值信息">
-            <div className="recharge-heading"><div><small>USDT PAYMENT</small><h2>{selectedPlan.name}</h2></div><button type="button" aria-label="关闭充值信息" onClick={() => setSelectedPlan(null)}>×</button></div>
+            <div className="recharge-heading"><div className="recharge-brand">{payment.usdtLogoUrl && <img src={payment.usdtLogoUrl} alt="USDT" />}<div><small>USDT PAYMENT</small><h2>{selectedPlan.name}</h2></div></div><button type="button" aria-label="关闭充值信息" onClick={() => setSelectedPlan(null)}>×</button></div>
             <p className="recharge-amount">应付金额 <strong>{selectedPlan.price} USDT</strong></p>
             {payment.usdtAddress ? <>
               <dl><div><dt>链网络</dt><dd>{payment.usdtNetwork}</dd></div><div><dt>USDT 收款地址</dt><dd><code>{payment.usdtAddress}</code></dd></div></dl>

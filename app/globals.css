@@ -215,6 +215,8 @@ input:focus, textarea:focus, select:focus { border-color: var(--line-green); bac
 .price-card button:disabled { background: #cbd0c9; cursor: default; }
 .recharge-panel { margin-top: 14px; border: 1px solid var(--line-green); border-radius: 14px; background: rgba(255,255,255,.72); padding: 17px; }
 .recharge-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.recharge-brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.recharge-brand > img { width: 44px; height: 44px; flex: 0 0 44px; border: 1px solid var(--soft-border); border-radius: 12px; background: white; object-fit: contain; }
 .recharge-heading small { color: var(--line-green); font-size: 8px; font-weight: 900; letter-spacing: .14em; }
 .recharge-heading h2 { margin: 4px 0 0; font-size: 20px; }
 .recharge-heading > button { border: 1px solid var(--border); border-radius: 999px; background: transparent; width: 28px; height: 28px; cursor: pointer; }
@@ -237,6 +239,15 @@ input:focus, textarea:focus, select:focus { border-color: var(--line-green); bac
 .admin-payment label { display: grid; gap: 6px; }
 .admin-payment label span { color: var(--muted); font-size: 9px; font-weight: 800; }
 .admin-payment button { min-height: 38px; border: 0; border-radius: 9px; background: var(--line-green); color: white; padding: 0 17px; font-size: 10px; font-weight: 800; cursor: pointer; }
+.admin-usdt-logo { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; border-bottom: 1px solid var(--soft-border); padding-bottom: 16px; }
+.admin-usdt-logo > img, .admin-logo-placeholder { width: 68px; height: 68px; flex: 0 0 68px; border: 1px solid var(--soft-border); border-radius: 14px; background: white; object-fit: contain; }
+.admin-logo-placeholder { display: grid; place-items: center; color: var(--line-green); font-size: 11px; font-weight: 900; }
+.admin-usdt-logo > div:last-child { display: grid; justify-items: start; gap: 4px; }
+.admin-usdt-logo strong { font-size: 11px; }
+.admin-usdt-logo span { color: var(--muted); font-size: 9px; }
+.upload-logo-button { display: inline-block; margin-top: 5px; border-radius: 8px; background: var(--ink); color: white; padding: 8px 11px; font-size: 9px; font-weight: 800; cursor: pointer; }
+.upload-logo-button input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+.upload-logo-button.disabled { opacity: .55; cursor: wait; }
 .admin-alert { border-radius: 9px; background: #dff9e7; color: #176b37; padding: 10px 12px; font-size: 11px; }
 .admin-alert.error { background: #fde4e2; color: #9d2f2a; }
 .admin-table-wrap { overflow-x: auto; }

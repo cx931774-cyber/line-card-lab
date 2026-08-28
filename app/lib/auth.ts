@@ -119,12 +119,13 @@ export async function getSessionUser(request: Request): Promise<SessionUser | nu
 
 export async function paymentDetails() {
   const result = await database().prepare(
-    "SELECT key, value FROM settings WHERE key IN ('usdt_address', 'usdt_network')",
+    "SELECT key, value FROM settings WHERE key IN ('usdt_address', 'usdt_network', 'usdt_logo_url')",
   ).all<{ key: string; value: string }>();
   const values = new Map(result.results.map((row) => [row.key, row.value]));
   return {
     usdtAddress: values.get("usdt_address") || "",
     usdtNetwork: values.get("usdt_network") || "",
+    usdtLogoUrl: values.get("usdt_logo_url") || "",
   };
 }
 
