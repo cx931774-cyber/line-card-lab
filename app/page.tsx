@@ -4,6 +4,7 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 
 type FontSize = "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "3xl" | "4xl" | "5xl";
 type ButtonStyle = "primary" | "secondary" | "link";
+type ImageSourceMode = "upload" | "url";
 
 type CardButton = {
   id: string;
@@ -57,7 +58,7 @@ declare global {
   }
 }
 
-const STORAGE_KEY = "line-card-lab:v2";
+const STORAGE_KEY = "line-card-lab:v3";
 const FONT_SIZES: FontSize[] = ["xxs", "xs", "sm", "md", "lg", "xl", "xxl", "3xl", "4xl", "5xl"];
 const COMPAT_SHARE_PAGE = "https://liff.line.me/1654437282-A1Bj7p4a/share-json5gzip.html";
 const COMPAT_TEMPLATE = "https://taichunmin.idv.tw/liff-businesscard/cards/line-carousel-1.txt";
@@ -72,7 +73,7 @@ const LEGACY_SECOND_BUTTON: CardButton = {
 
 const DEFAULT_CARD: CardConfig = {
   id: "brand-strategy",
-  image: "",
+  image: "https://i.imgur.com/yBjZFmf.png",
   link: "",
   kicker: "",
   title: "",
@@ -422,6 +423,7 @@ export default function Home() {
   const [loaded, setLoaded] = useState(false);
   const [toast, setToast] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageSourceMode, setImageSourceMode] = useState<ImageSourceMode>("url");
   const imageInputRef = useRef<HTMLInputElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -640,16 +642,30 @@ export default function Home() {
               <div className="image-upload-field">
                 <span className="field-label">卡片图片</span>
                 <input ref={imageInputRef} className="image-file-input" id="card-image" type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadImage} />
-                <div className="image-upload-control">
-                  <div className="image-upload-thumb">
-                    {activeCard.image ? <img key={activeCard.image} src={activeCard.image} alt="当前卡片图片" /> : <span>暂无图片</span>}
-                  </div>
-                  <div className="image-upload-actions">
-                    <button type="button" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage}>{uploadingImage ? "上传中…" : activeCard.image ? "更换图片" : "选择图片"}</button>
-                    {activeCard.image && <button className="remove-image" type="button" onClick={() => updateCard("image", "")} disabled={uploadingImage}>移除</button>}
-                    <small>支持 JPG、PNG、WebP，最大 10MB</small>
-                  </div>
+                <div className="image-source-options" role="radiogroup" aria-label="图片输入方式">
+                  <label><input type="radio" name="image-source" value="upload" checked={imageSourceMode === "upload"} onChange={() => setImageSourceMode("upload")} /><span>上传图片</span></label>
+                  <label><input type="radio" name="image-source" value="url" checked={imageSourceMode === "url"} onChange={() => setImageSourceMode("url")} /><span>输入链接</span></label>
                 </div>
+                {imageSourceMode === "upload" ? (
+                  <div className="image-upload-control">
+                    <div className="image-upload-thumb">
+                      {activeCard.image ? <img key={activeCard.image} src={activeCard.image} alt="当前卡片图片" /> : <span>暂无图片</span>}
+                    </div>
+                    <div className="image-upload-actions">
+                      <button type="button" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage}>{uploadingImage ? "上传中…" : activeCard.image ? "更换图片" : "选择图片"}</button>
+                      {activeCard.image && <button className="remove-image" type="button" onClick={() => updateCard("image", "")} disabled={uploadingImage}>移除</button>}
+                      <small>支持 JPG、PNG、WebP，最大 10MB</small>
+                    </div>
+                  </div>
+                ) : (
+                  <label className="image-url-input" htmlFor="card-image-url">
+                    <span>图片链接（HTTPS）</span>
+                    <input id="card-image-url" type="url" value={activeCard.image} onChange={(event) => {
+                      updateCard("imageBackgroundColor", "");
+                      updateCard("image", event.target.value);
+                    }} placeholder="https://..." />
+                  </label>
+                )}
               </div>
               <div className="color-grid">
                 {([
@@ -713,7 +729,7 @@ export default function Home() {
                   <div className="card-visual" style={{ aspectRatio: builder.settings.ratio.replace(":", " / "), backgroundColor: activeCard.imageBackgroundColor || activeCard.backgroundColor }}>
                     {activeCard.image && <>
                       <img className="visual-backdrop" key={`${activeCard.image}-backdrop`} src={activeCard.image} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none"; }} />
-                      <img className="visual-main" key={activeCard.image} src={activeCard.image} crossOrigin="anonymous" alt="" onLoad={(event) => {
+                      <img className="visual-main" key={activeCard.image} src={activeCard.image} alt="" onLoad={(event) => {
                         event.currentTarget.style.display = "block";
                         try {
                           const color = imageEdgeColor(event.currentTarget);
