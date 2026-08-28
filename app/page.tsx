@@ -353,7 +353,7 @@ function loadLiffSdk() {
 export default function Home() {
   const [builder, setBuilder] = useState<BuilderState>(DEFAULT_STATE);
   const [activeCardId, setActiveCardId] = useState(DEFAULT_STATE.cards[0].id);
-  const [settingsOpen, setSettingsOpen] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [integrationOpen, setIntegrationOpen] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
