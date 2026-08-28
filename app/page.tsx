@@ -57,7 +57,7 @@ declare global {
   }
 }
 
-const STORAGE_KEY = "line-card-lab:v3";
+const STORAGE_KEY = "line-card-lab:v4";
 const FONT_SIZES: FontSize[] = ["xxs", "xs", "sm", "md", "lg", "xl", "xxl", "3xl", "4xl", "5xl"];
 const COMPAT_SHARE_PAGE = "https://liff.line.me/1654437282-A1Bj7p4a/share-json5gzip.html";
 const COMPAT_TEMPLATE = "https://taichunmin.idv.tw/liff-businesscard/cards/line-carousel-1.txt";
@@ -74,16 +74,16 @@ const DEFAULT_CARD: CardConfig = {
   id: "brand-strategy",
   image: "https://i.imgur.com/yBjZFmf.png",
   link: "",
-  title: "",
-  description: "",
+  title: "Arm Chair, White",
+  description: "售價：USD $49.99",
   backgroundColor: "#ffffff",
   titleColor: "#111815",
   descriptionColor: "#69716d",
   buttons: [
     {
       id: "strategy-book",
-      text: "",
-      link: "",
+      text: "Add to Cart",
+      link: "www.google.com",
       color: "#06c755",
       style: "primary",
     },
@@ -143,7 +143,9 @@ function newId(prefix: string) {
 
 function safeUri(uri: string) {
   const value = uri.trim();
-  return /^https?:\/\//i.test(value) ? value : "https://line.me";
+  if (/^https?:\/\//i.test(value)) return value;
+  if (/^(?:www\.)?[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?(?::\d+)?(?:[/?#].*)?$/i.test(value)) return `https://${value}`;
+  return "https://line.me";
 }
 
 function placeholderImage(label = "YOUR BRAND") {
@@ -284,12 +286,12 @@ function toCompatibilityVcard(state: BuilderState) {
       desc: card.description,
       descColor: card.descriptionColor,
       image: card.image,
-      link: card.buttons[0]?.link || "",
+      link: safeUri(card.buttons[0]?.link || ""),
       title: card.title,
       titleColor: card.titleColor,
       btns: card.buttons.map((button) => ({
         color: button.color,
-        link: button.link,
+        link: safeUri(button.link),
         style: button.style,
         text: button.text,
       })),
