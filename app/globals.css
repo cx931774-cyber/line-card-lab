@@ -240,12 +240,14 @@ input:focus, textarea:focus, select:focus { border-color: var(--line-green); bac
 .recharge-modal { position: relative; z-index: 1; width: min(440px, 100%); max-height: calc(100dvh - 40px); overflow-y: auto; margin: 0; background: var(--paper); box-shadow: 0 24px 80px rgba(0,0,0,.32); }
 .recharge-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
 .recharge-brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
-.recharge-brand > img { width: 44px; height: 44px; flex: 0 0 44px; border: 1px solid var(--soft-border); border-radius: 12px; background: white; object-fit: contain; }
 .recharge-heading small { color: var(--line-green); font-size: 8px; font-weight: 900; letter-spacing: .14em; }
 .recharge-heading h2 { margin: 4px 0 0; font-size: 20px; }
 .recharge-heading > button { border: 1px solid var(--border); border-radius: 999px; background: transparent; width: 28px; height: 28px; cursor: pointer; }
 .recharge-amount { margin: 16px 0 12px; color: var(--muted); font-size: 11px; }
 .recharge-amount strong { margin-left: 5px; color: var(--ink); font-size: 17px; }
+.recharge-qr { display: grid; justify-items: center; gap: 7px; margin: 0 auto 14px; }
+.recharge-qr img { display: block; width: min(240px, 72vw); height: min(240px, 72vw); border: 1px solid var(--soft-border); border-radius: 14px; background: white; object-fit: contain; }
+.recharge-qr span { color: var(--muted); font-size: 9px; }
 .recharge-panel dl { display: grid; gap: 8px; margin: 0; }
 .recharge-panel dl > div { display: grid; grid-template-columns: 100px minmax(0,1fr); gap: 10px; align-items: start; border-top: 1px solid var(--soft-border); padding-top: 8px; }
 .recharge-panel dt { color: var(--muted); font-size: 9px; }

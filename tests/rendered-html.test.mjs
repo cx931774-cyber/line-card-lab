@@ -43,6 +43,7 @@ test("supports username or email authentication and transaction hash submission"
   assert.match(source, /用户名或邮箱/);
   assert.match(source, /交易哈希值/);
   assert.match(source, /我已充值/);
+  assert.match(source, /USDT 充值二维码/);
 });
 
 test("renders USDT payment settings in the admin shell", async () => {

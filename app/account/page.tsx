@@ -174,9 +174,10 @@ export default function AccountPage() {
         <div className="recharge-modal-backdrop">
           <button className="recharge-backdrop-dismiss" type="button" tabIndex={-1} aria-label="关闭充值信息" onClick={() => setSelectedPlan(null)} />
           <section className="recharge-panel recharge-modal" role="dialog" aria-modal="true" aria-label="USDT 充值信息">
-            <div className="recharge-heading"><div className="recharge-brand">{payment.usdtLogoUrl && <img src={payment.usdtLogoUrl} alt="USDT" />}<div><small>USDT PAYMENT</small><h2>{selectedPlan.name}</h2></div></div><button ref={closeRechargeRef} type="button" aria-label="关闭充值信息" onClick={() => setSelectedPlan(null)}>×</button></div>
+            <div className="recharge-heading"><div className="recharge-brand"><div><small>USDT PAYMENT</small><h2>{selectedPlan.name}</h2></div></div><button ref={closeRechargeRef} type="button" aria-label="关闭充值信息" onClick={() => setSelectedPlan(null)}>×</button></div>
             <p className="recharge-amount">应付金额 <strong>{selectedPlan.price} USDT</strong></p>
             {payment.usdtAddress ? <>
+              {payment.usdtLogoUrl && <div className="recharge-qr"><img src={payment.usdtLogoUrl} alt="USDT 充值二维码" /><span>使用钱包扫描二维码</span></div>}
               <dl><div><dt>链网络</dt><dd>{payment.usdtNetwork}</dd></div><div><dt>USDT 收款地址</dt><dd><code>{payment.usdtAddress}</code></dd></div></dl>
               <label className="transaction-hash"><span>交易哈希值</span><input type="text" value={transactionHash} onChange={(event) => setTransactionHash(event.target.value)} placeholder="请输入转账交易哈希值" autoComplete="off" /></label>
               <div className="recharge-actions">
