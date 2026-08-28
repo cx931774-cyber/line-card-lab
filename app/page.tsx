@@ -1,0 +1,801 @@
+"use client";
+
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+
+type FontSize = "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "3xl" | "4xl" | "5xl";
+type ButtonStyle = "primary" | "secondary" | "link";
+
+type CardButton = {
+  id: string;
+  text: string;
+  link: string;
+  color: string;
+  style: ButtonStyle;
+};
+
+type CardConfig = {
+  id: string;
+  image: string;
+  link: string;
+  kicker: string;
+  title: string;
+  description: string;
+  backgroundColor: string;
+  titleColor: string;
+  descriptionColor: string;
+  buttons: CardButton[];
+};
+
+type BuilderSettings = {
+  altText: string;
+  ratio: string;
+  titleSize: FontSize;
+  descriptionSize: FontSize;
+  buttonHeight: "sm" | "md";
+  chatName: string;
+  liffId: string;
+};
+
+type BuilderState = {
+  version: 1;
+  settings: BuilderSettings;
+  cards: CardConfig[];
+};
+
+type LiffApi = {
+  init: (config: { liffId: string }) => Promise<void>;
+  isLoggedIn: () => boolean;
+  login: (config?: { redirectUri?: string }) => void;
+  isApiAvailable: (name: string) => boolean;
+  shareTargetPicker: (messages: unknown[]) => Promise<unknown>;
+};
+
+declare global {
+  interface Window {
+    liff?: LiffApi;
+  }
+}
+
+const STORAGE_KEY = "line-card-lab:v1";
+const FONT_SIZES: FontSize[] = ["xxs", "xs", "sm", "md", "lg", "xl", "xxl", "3xl", "4xl", "5xl"];
+const COMPAT_SHARE_PAGE = "https://liff.line.me/1654437282-A1Bj7p4a/share-json5gzip.html";
+const COMPAT_TEMPLATE = "https://taichunmin.idv.tw/liff-businesscard/cards/line-carousel-1.txt";
+
+const DEFAULT_STATE: BuilderState = {
+  version: 1,
+  settings: {
+    altText: "请在手机上查看这组品牌卡片。",
+    ratio: "20:13",
+    titleSize: "xl",
+    descriptionSize: "sm",
+    buttonHeight: "sm",
+    chatName: "品牌咨询",
+    liffId: "",
+  },
+  cards: [
+    {
+      id: "brand-strategy",
+      image: "https://images.unsplash.com/photo-1523726491678-bf852e717f6a?auto=format&fit=crop&w=1200&q=85",
+      link: "https://example.com/strategy",
+      kicker: "BRAND STRATEGY",
+      title: "把想法，变成会被记住的品牌",
+      description: "从定位、语言到视觉系统，整理出清楚且一致的品牌表达。",
+      backgroundColor: "#ffffff",
+      titleColor: "#111815",
+      descriptionColor: "#69716d",
+      buttons: [
+        {
+          id: "strategy-book",
+          text: "预约品牌咨询",
+          link: "https://example.com/book",
+          color: "#06c755",
+          style: "primary",
+        },
+        {
+          id: "strategy-work",
+          text: "查看服务与案例",
+          link: "https://example.com/work",
+          color: "#167a47",
+          style: "link",
+        },
+      ],
+    },
+    {
+      id: "web-experience",
+      image: "https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=1200&q=85",
+      link: "https://example.com/web",
+      kicker: "DIGITAL EXPERIENCE",
+      title: "让网页成为品牌最好用的名片",
+      description: "兼顾叙事、转化与速度，做一套真正能长期使用的数字体验。",
+      backgroundColor: "#efffe8",
+      titleColor: "#102117",
+      descriptionColor: "#516057",
+      buttons: [
+        {
+          id: "web-plan",
+          text: "查看网页方案",
+          link: "https://example.com/web-plan",
+          color: "#102117",
+          style: "primary",
+        },
+      ],
+    },
+  ],
+};
+
+function newId(prefix: string) {
+  const suffix = typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID().slice(0, 8)
+    : Math.random().toString(36).slice(2, 10);
+  return `${prefix}-${suffix}`;
+}
+
+function safeUri(uri: string) {
+  const value = uri.trim();
+  return /^https?:\/\//i.test(value) ? value : "https://line.me";
+}
+
+function placeholderImage(label = "YOUR BRAND") {
+  return `https://dummyimage.com/1200x780/06c755/ffffff.png&text=${encodeURIComponent(label)}`;
+}
+
+function buildFlexMessage(state: BuilderState) {
+  const { settings, cards } = state;
+
+  return {
+    type: "flex",
+    altText: settings.altText || "请在手机上查看这组卡片。",
+    contents: {
+      type: "carousel",
+      contents: cards.map((card) => {
+        const bubble: Record<string, unknown> = {
+          type: "bubble",
+          hero: {
+            type: "image",
+            url: safeUri(card.image) === card.image.trim() ? card.image.trim() : placeholderImage(card.kicker),
+            size: "full",
+            aspectRatio: settings.ratio || "20:13",
+            aspectMode: "cover",
+            action: { type: "uri", uri: safeUri(card.link) },
+          },
+          body: {
+            type: "box",
+            layout: "vertical",
+            spacing: "md",
+            backgroundColor: card.backgroundColor || "#ffffff",
+            action: { type: "uri", uri: safeUri(card.link) },
+            contents: [
+              ...(card.kicker
+                ? [{
+                    type: "text",
+                    text: card.kicker,
+                    size: "xxs",
+                    color: "#06c755",
+                    weight: "bold",
+                  }]
+                : []),
+              {
+                type: "text",
+                text: card.title || "未命名卡片",
+                size: settings.titleSize,
+                color: card.titleColor || "#111815",
+                weight: "bold",
+                wrap: true,
+              },
+              {
+                type: "text",
+                text: card.description || "请填写卡片说明。",
+                size: settings.descriptionSize,
+                color: card.descriptionColor || "#69716d",
+                wrap: true,
+              },
+            ],
+          },
+        };
+
+        if (card.buttons.length) {
+          bubble.footer = {
+            type: "box",
+            layout: "vertical",
+            spacing: "sm",
+            backgroundColor: card.backgroundColor || "#ffffff",
+            contents: card.buttons.map((button) => ({
+              type: "button",
+              style: button.style,
+              height: settings.buttonHeight,
+              color: button.color || "#06c755",
+              action: {
+                type: "uri",
+                label: button.text || "查看详情",
+                uri: safeUri(button.link),
+              },
+            })),
+          };
+        }
+
+        return bubble;
+      }),
+    },
+  };
+}
+
+function toCompatibilityVcard(state: BuilderState) {
+  return {
+    altText: state.settings.altText,
+    btnHeight: state.settings.buttonHeight,
+    descSize: state.settings.descriptionSize,
+    ratio: state.settings.ratio,
+    titleSize: state.settings.titleSize,
+    cards: state.cards.map((card) => ({
+      bgColor: card.backgroundColor,
+      desc: card.description,
+      descColor: card.descriptionColor,
+      image: card.image,
+      link: card.link,
+      title: card.title,
+      titleColor: card.titleColor,
+      btns: card.buttons.map((button) => ({
+        color: button.color,
+        link: button.link,
+        style: button.style,
+        text: button.text,
+      })),
+    })),
+  };
+}
+
+function sortForStableJson(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortForStableJson);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, item]) => [key, sortForStableJson(item)]),
+  );
+}
+
+function bytesToBase64Url(bytes: Uint8Array) {
+  let binary = "";
+  for (let index = 0; index < bytes.length; index += 32768) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + 32768));
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function textToBase64Url(value: string) {
+  return bytesToBase64Url(new TextEncoder().encode(value));
+}
+
+async function createCompatibilityLink(state: BuilderState) {
+  if (!("CompressionStream" in window)) throw new Error("当前浏览器不支持链接压缩");
+  const payload = JSON.stringify(sortForStableJson(toCompatibilityVcard(state)));
+  const compressed = new Blob([payload])
+    .stream()
+    .pipeThrough(new CompressionStream("deflate"));
+  const bytes = new Uint8Array(await new Response(compressed).arrayBuffer());
+  const url = new URL(COMPAT_SHARE_PAGE);
+  url.searchParams.set("template", textToBase64Url(COMPAT_TEMPLATE));
+  url.searchParams.set("json5gzip", bytesToBase64Url(bytes));
+  return url.href;
+}
+
+function normalizeImported(raw: unknown): BuilderState {
+  if (!raw || typeof raw !== "object") throw new Error("文件内容不是有效对象");
+  const input = raw as Record<string, unknown>;
+
+  if (input.settings && Array.isArray(input.cards)) {
+    const imported = input as unknown as BuilderState;
+    if (!imported.cards.length) throw new Error("至少需要一张卡片");
+    return { ...imported, version: 1 };
+  }
+
+  const json5 = (input.json5 || input) as Record<string, unknown>;
+  if (!Array.isArray(json5.cards)) throw new Error("没有找到可导入的卡片配置");
+
+  const cards = (json5.cards as Array<Record<string, unknown>>).map((card, cardIndex) => ({
+    id: newId(`import-card-${cardIndex + 1}`),
+    image: String(card.image || ""),
+    link: String(card.link || "https://line.me"),
+    kicker: "",
+    title: String(card.title || "未命名卡片"),
+    description: String(card.desc || card.description || ""),
+    backgroundColor: String(card.bgColor || card.backgroundColor || "#ffffff"),
+    titleColor: String(card.titleColor || "#111815"),
+    descriptionColor: String(card.descColor || card.descriptionColor || "#69716d"),
+    buttons: (Array.isArray(card.btns) ? card.btns : Array.isArray(card.buttons) ? card.buttons : [])
+      .map((button, buttonIndex) => {
+        const item = button as Record<string, unknown>;
+        return {
+          id: newId(`import-button-${buttonIndex + 1}`),
+          text: String(item.text || item.label || "查看详情"),
+          link: String(item.link || item.uri || "https://line.me"),
+          color: String(item.color || "#06c755"),
+          style: (["primary", "secondary", "link"].includes(String(item.style))
+            ? String(item.style)
+            : "primary") as ButtonStyle,
+        };
+      }),
+  }));
+
+  return {
+    version: 1,
+    settings: {
+      ...DEFAULT_STATE.settings,
+      altText: String(json5.altText || DEFAULT_STATE.settings.altText),
+      ratio: String(json5.ratio || DEFAULT_STATE.settings.ratio),
+      titleSize: String(json5.titleSize || DEFAULT_STATE.settings.titleSize) as FontSize,
+      descriptionSize: String(json5.descSize || json5.descriptionSize || DEFAULT_STATE.settings.descriptionSize) as FontSize,
+      buttonHeight: String(json5.btnHeight || json5.buttonHeight || "sm") as "sm" | "md",
+    },
+    cards,
+  };
+}
+
+function loadLiffSdk() {
+  if (window.liff) return Promise.resolve(window.liff);
+  return new Promise<LiffApi>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>('script[data-liff-sdk="true"]');
+    if (existing) {
+      existing.addEventListener("load", () => window.liff ? resolve(window.liff) : reject(new Error("LIFF SDK 未加载")));
+      existing.addEventListener("error", () => reject(new Error("LIFF SDK 加载失败")));
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
+    script.async = true;
+    script.dataset.liffSdk = "true";
+    script.onload = () => window.liff ? resolve(window.liff) : reject(new Error("LIFF SDK 未加载"));
+    script.onerror = () => reject(new Error("LIFF SDK 加载失败"));
+    document.head.appendChild(script);
+  });
+}
+
+export default function Home() {
+  const [builder, setBuilder] = useState<BuilderState>(DEFAULT_STATE);
+  const [activeCardId, setActiveCardId] = useState(DEFAULT_STATE.cards[0].id);
+  const [settingsOpen, setSettingsOpen] = useState(true);
+  const [integrationOpen, setIntegrationOpen] = useState(false);
+  const [jsonOpen, setJsonOpen] = useState(false);
+  const [configOpen, setConfigOpen] = useState(false);
+  const [configText, setConfigText] = useState("");
+  const [compatibilityLink, setCompatibilityLink] = useState("");
+  const [loaded, setLoaded] = useState(false);
+  const [toast, setToast] = useState("");
+  const [sharing, setSharing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const normalized = normalizeImported(JSON.parse(saved));
+        setBuilder(normalized);
+        setActiveCardId(normalized.cards[0].id);
+      }
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
+    } finally {
+      setLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (loaded) localStorage.setItem(STORAGE_KEY, JSON.stringify(builder));
+  }, [builder, loaded]);
+
+  useEffect(() => {
+    let current = true;
+    createCompatibilityLink(builder)
+      .then((link) => { if (current) setCompatibilityLink(link); })
+      .catch(() => { if (current) setCompatibilityLink(""); });
+    return () => { current = false; };
+  }, [builder]);
+
+  useEffect(() => () => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+  }, []);
+
+  const activeIndex = Math.max(0, builder.cards.findIndex((card) => card.id === activeCardId));
+  const activeCard = builder.cards[activeIndex] || builder.cards[0];
+  const flexMessage = useMemo(() => buildFlexMessage(builder), [builder]);
+  const flexJson = useMemo(() => JSON.stringify(flexMessage, null, 2), [flexMessage]);
+
+  const notify = (message: string) => {
+    setToast(message);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(""), 2800);
+  };
+
+  const updateSettings = <K extends keyof BuilderSettings>(key: K, value: BuilderSettings[K]) => {
+    setBuilder((current) => ({
+      ...current,
+      settings: { ...current.settings, [key]: value },
+    }));
+  };
+
+  const updateCard = <K extends keyof CardConfig>(key: K, value: CardConfig[K]) => {
+    setBuilder((current) => ({
+      ...current,
+      cards: current.cards.map((card) => card.id === activeCard.id ? { ...card, [key]: value } : card),
+    }));
+  };
+
+  const updateButton = <K extends keyof CardButton>(buttonId: string, key: K, value: CardButton[K]) => {
+    updateCard("buttons", activeCard.buttons.map((button) => button.id === buttonId ? { ...button, [key]: value } : button));
+  };
+
+  const addCard = () => {
+    const card: CardConfig = {
+      id: newId("card"),
+      image: "",
+      link: "https://example.com",
+      kicker: "NEW CARD",
+      title: "新的卡片标题",
+      description: "在这里写一句清楚、具体的说明。",
+      backgroundColor: "#ffffff",
+      titleColor: "#111815",
+      descriptionColor: "#69716d",
+      buttons: [{
+        id: newId("button"),
+        text: "查看详情",
+        link: "https://example.com",
+        color: "#06c755",
+        style: "primary",
+      }],
+    };
+    setBuilder((current) => ({ ...current, cards: [...current.cards, card] }));
+    setActiveCardId(card.id);
+  };
+
+  const moveCard = (direction: -1 | 1) => {
+    const nextIndex = activeIndex + direction;
+    if (nextIndex < 0 || nextIndex >= builder.cards.length) return;
+    setBuilder((current) => {
+      const cards = [...current.cards];
+      [cards[activeIndex], cards[nextIndex]] = [cards[nextIndex], cards[activeIndex]];
+      return { ...current, cards };
+    });
+  };
+
+  const removeCard = () => {
+    if (builder.cards.length === 1) return notify("至少保留一张卡片");
+    if (!window.confirm(`确定删除第 ${activeIndex + 1} 张卡片吗？`)) return;
+    const nextCards = builder.cards.filter((card) => card.id !== activeCard.id);
+    setBuilder((current) => ({ ...current, cards: nextCards }));
+    setActiveCardId(nextCards[Math.min(activeIndex, nextCards.length - 1)].id);
+  };
+
+  const addButton = () => {
+    updateCard("buttons", [...activeCard.buttons, {
+      id: newId("button"),
+      text: "查看详情",
+      link: "https://example.com",
+      color: "#06c755",
+      style: "primary",
+    }]);
+  };
+
+  const removeButton = (buttonId: string) => {
+    updateCard("buttons", activeCard.buttons.filter((button) => button.id !== buttonId));
+  };
+
+  const moveButton = (buttonId: string, direction: -1 | 1) => {
+    const buttonIndex = activeCard.buttons.findIndex((button) => button.id === buttonId);
+    const nextIndex = buttonIndex + direction;
+    if (buttonIndex < 0 || nextIndex < 0 || nextIndex >= activeCard.buttons.length) return;
+    const buttons = [...activeCard.buttons];
+    [buttons[buttonIndex], buttons[nextIndex]] = [buttons[nextIndex], buttons[buttonIndex]];
+    updateCard("buttons", buttons);
+  };
+
+  const copyText = async (value: string, successMessage: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = value;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+    }
+    notify(successMessage);
+  };
+
+  const exportConfig = () => {
+    const blob = new Blob([JSON.stringify(builder, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "line-card-config.json";
+    link.click();
+    URL.revokeObjectURL(url);
+    notify("配置文件已导出");
+  };
+
+  const openConfigEditor = () => {
+    setConfigText(JSON.stringify(builder, null, 2));
+    setConfigOpen(true);
+  };
+
+  const importConfigText = () => {
+    try {
+      const normalized = normalizeImported(JSON.parse(configText));
+      setBuilder(normalized);
+      setActiveCardId(normalized.cards[0].id);
+      setConfigOpen(false);
+      notify("配置导入成功");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "配置导入失败");
+    }
+  };
+
+  const importConfig = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const normalized = normalizeImported(JSON.parse(await file.text()));
+      setBuilder(normalized);
+      setActiveCardId(normalized.cards[0].id);
+      notify("配置导入成功");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "配置导入失败");
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  const resetBuilder = () => {
+    if (!window.confirm("确定恢复示例内容吗？当前编辑会被覆盖。")) return;
+    setBuilder(DEFAULT_STATE);
+    setActiveCardId(DEFAULT_STATE.cards[0].id);
+    notify("已恢复示例内容");
+  };
+
+  const shareViaLine = async () => {
+    const liffId = builder.settings.liffId.trim();
+    if (!liffId) {
+      setIntegrationOpen(true);
+      return notify("请先填写你自己的 LIFF ID");
+    }
+    setSharing(true);
+    try {
+      const liff = await loadLiffSdk();
+      await liff.init({ liffId });
+      if (!liff.isLoggedIn()) {
+        liff.login({ redirectUri: window.location.href });
+        return;
+      }
+      if (!liff.isApiAvailable("shareTargetPicker")) {
+        throw new Error("当前 LIFF 应用未开放 shareTargetPicker");
+      }
+      await liff.shareTargetPicker([flexMessage]);
+      notify("LINE 分享面板已打开");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "无法打开 LINE 分享");
+    } finally {
+      setSharing(false);
+    }
+  };
+
+  const buttonPreviewStyle = (button: CardButton) => {
+    if (button.style === "primary") return { background: button.color, color: "#ffffff", borderColor: button.color };
+    if (button.style === "secondary") return { background: button.color, color: "#111815", borderColor: button.color };
+    return { background: "transparent", color: button.color, borderColor: "transparent" };
+  };
+
+  return (
+    <main className="site-shell" id="top">
+      <header className="topbar">
+        <a className="brand" href="#top" aria-label="LINE 卡片实验室首页">
+          <span className="brand-mark">L</span>
+          <span>LINE 卡片实验室</span>
+        </a>
+        <nav className="top-actions" aria-label="页面操作">
+          <a href="#principle">生成原理</a>
+          <button className="header-copy" type="button" onClick={() => copyText(flexJson, "Flex Message JSON 已复制")}>复制 JSON</button>
+        </nav>
+      </header>
+
+      <section className="hero">
+        <div>
+          <p className="eyebrow">FLEX MESSAGE BUILDER · LOCAL FIRST</p>
+          <h1>让每一次分享，<br /><em>都像一张作品。</em></h1>
+        </div>
+        <div className="hero-side">
+          <p>编辑内容、色彩与按钮，实时预览 LINE Carousel。所有草稿只保存在你的浏览器，不会上传。</p>
+          <div className="hero-tags"><span>即时预览</span><span>导入 / 导出</span><span>LIFF 分享</span></div>
+        </div>
+      </section>
+
+      <section className="workspace" aria-label="卡片编辑工作区">
+        <div className="editor-panel">
+          <div className="panel-heading">
+            <div><span className="step">01</span><h2>编辑卡片</h2></div>
+            <span className="save-state"><i /> 本机自动保存</span>
+          </div>
+
+          <div className="card-tabs" aria-label="卡片列表">
+            {builder.cards.map((card, index) => (
+              <button
+                key={card.id}
+                type="button"
+                className={card.id === activeCard.id ? "active" : ""}
+                aria-pressed={card.id === activeCard.id}
+                onClick={() => setActiveCardId(card.id)}
+              >{String(index + 1).padStart(2, "0")}</button>
+            ))}
+            <button className="add-tab" type="button" onClick={addCard} aria-label="新增卡片">＋</button>
+          </div>
+
+          <section className="editor-section compact-section">
+            <button className="section-toggle" type="button" aria-expanded={settingsOpen} onClick={() => setSettingsOpen((open) => !open)}>
+              <span><small>GLOBAL</small> 全局设置</span><b>{settingsOpen ? "−" : "+"}</b>
+            </button>
+            {settingsOpen && (
+              <div className="section-content settings-grid">
+                <label className="wide-field" htmlFor="alt-text"><span>替代文字</span><input id="alt-text" value={builder.settings.altText} onChange={(event) => updateSettings("altText", event.target.value)} /></label>
+                <label htmlFor="ratio"><span>图片比例</span><input id="ratio" value={builder.settings.ratio} onChange={(event) => updateSettings("ratio", event.target.value)} placeholder="20:13" /></label>
+                <label htmlFor="chat-name"><span>预览聊天名称</span><input id="chat-name" value={builder.settings.chatName} onChange={(event) => updateSettings("chatName", event.target.value)} /></label>
+                <label htmlFor="title-size"><span>标题字号</span><select id="title-size" value={builder.settings.titleSize} onChange={(event) => updateSettings("titleSize", event.target.value as FontSize)}>{FONT_SIZES.map((size) => <option key={size}>{size}</option>)}</select></label>
+                <label htmlFor="desc-size"><span>说明字号</span><select id="desc-size" value={builder.settings.descriptionSize} onChange={(event) => updateSettings("descriptionSize", event.target.value as FontSize)}>{FONT_SIZES.map((size) => <option key={size}>{size}</option>)}</select></label>
+                <label htmlFor="button-height"><span>按钮高度</span><select id="button-height" value={builder.settings.buttonHeight} onChange={(event) => updateSettings("buttonHeight", event.target.value as "sm" | "md")}><option value="sm">sm</option><option value="md">md</option></select></label>
+              </div>
+            )}
+          </section>
+
+          <section className="editor-section">
+            <div className="card-toolbar">
+              <div><small>CARD {String(activeIndex + 1).padStart(2, "0")}</small><strong>{activeCard.title || "未命名卡片"}</strong></div>
+              <div className="icon-actions">
+                <button type="button" onClick={() => moveCard(-1)} disabled={activeIndex === 0} aria-label="卡片前移">←</button>
+                <button type="button" onClick={() => moveCard(1)} disabled={activeIndex === builder.cards.length - 1} aria-label="卡片后移">→</button>
+                <button className="danger" type="button" onClick={removeCard} aria-label="删除卡片">×</button>
+              </div>
+            </div>
+
+            <div className="section-content form-stack">
+              <label htmlFor="card-kicker"><span>眉标题</span><input id="card-kicker" value={activeCard.kicker} onChange={(event) => updateCard("kicker", event.target.value)} /></label>
+              <label htmlFor="card-title"><span>主标题</span><input id="card-title" value={activeCard.title} onChange={(event) => updateCard("title", event.target.value)} /></label>
+              <label htmlFor="card-description"><span>说明文字</span><textarea id="card-description" rows={3} value={activeCard.description} onChange={(event) => updateCard("description", event.target.value)} /></label>
+              <label htmlFor="card-image"><span>图片网址（HTTPS）</span><input id="card-image" value={activeCard.image} onChange={(event) => updateCard("image", event.target.value)} placeholder="https://..." /></label>
+              <label htmlFor="card-link"><span>点击整张卡片时打开</span><input id="card-link" value={activeCard.link} onChange={(event) => updateCard("link", event.target.value)} placeholder="https://..." /></label>
+
+              <div className="color-grid">
+                {([
+                  ["backgroundColor", "卡片底色"],
+                  ["titleColor", "标题颜色"],
+                  ["descriptionColor", "说明颜色"],
+                ] as Array<["backgroundColor" | "titleColor" | "descriptionColor", string]>).map(([key, label]) => (
+                  <label key={key} htmlFor={`color-${key}`}><span>{label}</span><span className="color-control"><input id={`color-${key}`} type="color" value={activeCard[key]} onChange={(event) => updateCard(key, event.target.value)} /><code>{activeCard[key]}</code></span></label>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="editor-section">
+            <div className="subsection-heading"><div><small>ACTIONS</small><h3>卡片按钮</h3></div><button type="button" onClick={addButton}>＋ 新增按钮</button></div>
+            <div className="button-list">
+              {activeCard.buttons.length === 0 && <p className="empty-note">这张卡片还没有按钮。</p>}
+              {activeCard.buttons.map((button, index) => (
+                <div className="button-editor" key={button.id}>
+                  <div className="button-editor-head">
+                    <span>按钮 {index + 1}</span>
+                    <div>
+                      <button type="button" onClick={() => moveButton(button.id, -1)} disabled={index === 0}>上移</button>
+                      <button type="button" onClick={() => moveButton(button.id, 1)} disabled={index === activeCard.buttons.length - 1}>下移</button>
+                      <button className="delete-button" type="button" onClick={() => removeButton(button.id)}>删除</button>
+                    </div>
+                  </div>
+                  <label htmlFor={`button-text-${button.id}`}><span>按钮文字</span><input id={`button-text-${button.id}`} value={button.text} onChange={(event) => updateButton(button.id, "text", event.target.value)} /></label>
+                  <label htmlFor={`button-link-${button.id}`}><span>目标网址</span><input id={`button-link-${button.id}`} value={button.link} onChange={(event) => updateButton(button.id, "link", event.target.value)} /></label>
+                  <div className="button-options">
+                    <label htmlFor={`button-style-${button.id}`}><span>样式</span><select id={`button-style-${button.id}`} value={button.style} onChange={(event) => updateButton(button.id, "style", event.target.value as ButtonStyle)}><option value="primary">主按钮</option><option value="secondary">次按钮</option><option value="link">文字链接</option></select></label>
+                    <label htmlFor={`button-color-${button.id}`}><span>颜色</span><span className="color-control"><input id={`button-color-${button.id}`} type="color" value={button.color} onChange={(event) => updateButton(button.id, "color", event.target.value)} /><code>{button.color}</code></span></label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="editor-section compact-section">
+            <button className="section-toggle" type="button" aria-expanded={integrationOpen} onClick={() => setIntegrationOpen((open) => !open)}>
+              <span><small>OPTIONAL</small> LINE 分享接入</span><b>{integrationOpen ? "−" : "+"}</b>
+            </button>
+            {integrationOpen && (
+              <div className="section-content integration-content">
+                <p>复制 JSON 不需要账号。若要直接打开 LINE 好友选择器，请填写你在 LINE Developers 建立的 LIFF ID。</p>
+                <label htmlFor="liff-id"><span>你的 LIFF ID</span><input id="liff-id" value={builder.settings.liffId} onChange={(event) => updateSettings("liffId", event.target.value)} placeholder="1234567890-AbCdEfGh" /></label>
+              </div>
+            )}
+          </section>
+
+          <div className="utility-actions">
+            <input ref={fileInputRef} className="visually-hidden" type="file" accept="application/json,.json" onChange={importConfig} />
+            <button type="button" onClick={openConfigEditor}>导出 / 导入</button>
+            <button type="button" onClick={() => fileInputRef.current?.click()}>从文件导入</button>
+            <button type="button" onClick={exportConfig}>下载配置</button>
+            <button type="button" onClick={resetBuilder}>恢复示例</button>
+          </div>
+        </div>
+
+        <aside className="preview-panel">
+          <div className="preview-sticky">
+            <div className="panel-heading inverse">
+              <div><span className="step">02</span><h2>LINE 预览</h2></div>
+              <span className="card-count">{activeIndex + 1} / {builder.cards.length}</span>
+            </div>
+
+            <div className="phone-stage">
+              <div className="preview-orbit orbit-one" /><div className="preview-orbit orbit-two" />
+              <div className="phone">
+                <div className="phone-notch" />
+                <div className="phone-header"><span>‹</span><b>{builder.settings.chatName || "LINE"}</b><span>⋯</span></div>
+                <div className="chat-time">今天 10:24</div>
+                <article className="line-card" style={{ background: activeCard.backgroundColor }}>
+                  <div className="card-visual" style={{ aspectRatio: builder.settings.ratio.replace(":", " / ") }}>
+                    {activeCard.image && <img src={activeCard.image} alt="" onError={(event) => { event.currentTarget.style.display = "none"; }} />}
+                    <div className="visual-fallback"><span>{activeCard.kicker || "YOUR BRAND"}</span><small>{String(activeIndex + 1).padStart(2, "0")}</small></div>
+                  </div>
+                  <div className="card-body">
+                    {activeCard.kicker && <span className="preview-kicker">{activeCard.kicker}</span>}
+                    <h3 style={{ color: activeCard.titleColor }}>{activeCard.title || "请输入卡片标题"}</h3>
+                    <p style={{ color: activeCard.descriptionColor }}>{activeCard.description || "请输入卡片说明"}</p>
+                    <div className="preview-buttons">
+                      {activeCard.buttons.map((button) => <button key={button.id} type="button" style={buttonPreviewStyle(button)}>{button.text || "查看详情"}</button>)}
+                    </div>
+                  </div>
+                </article>
+                <div className="pager-dots" aria-label="选择预览卡片">
+                  {builder.cards.map((card) => <button key={card.id} type="button" className={card.id === activeCard.id ? "active" : ""} onClick={() => setActiveCardId(card.id)} aria-label={`预览第 ${builder.cards.indexOf(card) + 1} 张卡片`} />)}
+                </div>
+              </div>
+            </div>
+
+            <div className="output-actions">
+              <button className="primary-action" type="button" onClick={() => copyText(flexJson, "Flex Message JSON 已复制")}><span>复制 Flex Message JSON</span><b>↗</b></button>
+              <a className={`line-action ${compatibilityLink ? "" : "disabled"}`} href={compatibilityLink || undefined} target="_blank" rel="noreferrer"><span>{compatibilityLink ? "建立名片（兼容原页）" : "正在生成分享链接…"}</span><b>LINE</b></a>
+              <button className="own-liff-action" type="button" onClick={shareViaLine} disabled={sharing}><span>{sharing ? "正在连接 LINE…" : "用自己的 LIFF 分享"}</span><b>↗</b></button>
+              <button className="json-toggle" type="button" onClick={() => setJsonOpen((open) => !open)}>{jsonOpen ? "收起 JSON 预览" : "展开 JSON 预览"}</button>
+              {jsonOpen && <textarea className="json-output" readOnly value={flexJson} aria-label="Flex Message JSON 预览" />}
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section className="principle" id="principle">
+        <div className="principle-intro">
+          <p className="eyebrow">HOW IT WORKS</p>
+          <h2>从表单到 LINE 卡片，<br />核心只有四步。</h2>
+          <p>参考页面把编辑器状态压缩进 LIFF 链接，再由模板还原成 Flex Message。本页面直接生成同一类标准 JSON，并可接入你自己的 LIFF。</p>
+        </div>
+        <ol>
+          <li><span>01</span><div><b>编辑状态</b><p>标题、图片、颜色与按钮组成结构化配置。</p></div></li>
+          <li><span>02</span><div><b>映射组件</b><p>每张卡片成为 bubble，全部卡片组成 carousel。</p></div></li>
+          <li><span>03</span><div><b>导出 JSON</b><p>浏览器即时生成 LINE Messaging API 可用的 Flex Message。</p></div></li>
+          <li><span>04</span><div><b>LIFF 分享</b><p>填入自己的 LIFF ID 后，调用 shareTargetPicker 选择好友。</p></div></li>
+        </ol>
+      </section>
+
+      <footer><div className="brand"><span className="brand-mark">L</span><span>LINE 卡片实验室</span></div><p>草稿保存在本机 · 不上传编辑内容</p></footer>
+      {configOpen && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setConfigOpen(false); }}>
+          <section className="config-modal" role="dialog" aria-modal="true" aria-labelledby="config-modal-title">
+            <div className="config-modal-head"><div><small>CONFIGURATION</small><h2 id="config-modal-title">导出 / 导入配置</h2></div><button type="button" onClick={() => setConfigOpen(false)} aria-label="关闭">×</button></div>
+            <p>复制下方配置做备份；也可以粘贴本页面或原生成器导出的配置，再点“导入配置”。</p>
+            <textarea value={configText} onChange={(event) => setConfigText(event.target.value)} spellCheck={false} aria-label="卡片配置 JSON" />
+            <div className="config-modal-actions">
+              <button type="button" onClick={() => copyText(configText, "配置已复制")}>复制</button>
+              <button type="button" onClick={() => setConfigOpen(false)}>关闭</button>
+              <button className="confirm" type="button" onClick={importConfigText}>导入配置</button>
+            </div>
+          </section>
+        </div>
+      )}
+      <div className={`toast ${toast ? "show" : ""}`} role="status">{toast}</div>
+    </main>
+  );
+}
