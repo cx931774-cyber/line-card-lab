@@ -430,7 +430,7 @@ function TemplateCatalog({ onOpenLineCarousel }: { onOpenLineCarousel: () => voi
       <section className="catalog-page" aria-labelledby="catalog-title">
         <div className="catalog-heading">
           <span>LINE FLEX MESSAGE</span>
-          <h1 id="catalog-title">免费样板列表</h1>
+          <h1 id="catalog-title">样板列表</h1>
           <p>选择一款样板，进入它自己的名片编辑表单。</p>
         </div>
         <div className="template-grid">
@@ -648,8 +648,11 @@ export default function Home() {
           <span className="brand-mark">L</span>
           <span>LINE 卡片实验室</span>
         </a>
-        <button className="catalog-back" type="button" onClick={openCatalog}>← 返回样板列表</button>
       </header>
+
+      <div className="editor-return-row">
+        <button className="catalog-back" type="button" onClick={openCatalog}>← 返回样板列表</button>
+      </div>
 
       <section className="workspace" aria-label="卡片编辑工作区">
         <div className="editor-panel">
