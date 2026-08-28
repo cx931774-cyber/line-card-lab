@@ -181,6 +181,7 @@ function buildFlexMessage(state: BuilderState) {
     contents: {
       type: "carousel",
       contents: cards.map((card) => {
+        const cardTarget = safeUri(card.buttons[0]?.link || "");
         const bubble: Record<string, unknown> = {
           type: "bubble",
           hero: {
@@ -189,14 +190,14 @@ function buildFlexMessage(state: BuilderState) {
             size: "full",
             aspectRatio: settings.ratio || "20:13",
             aspectMode: "cover",
-            action: { type: "uri", uri: safeUri(card.link) },
+            action: { type: "uri", uri: cardTarget },
           },
           body: {
             type: "box",
             layout: "vertical",
             spacing: "md",
             backgroundColor: card.backgroundColor || "#ffffff",
-            action: { type: "uri", uri: safeUri(card.link) },
+            action: { type: "uri", uri: cardTarget },
             contents: [
               ...(card.kicker
                 ? [{
@@ -666,8 +667,6 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              <label htmlFor="card-link"><span>点击整张卡片时打开</span><input id="card-link" value={activeCard.link} onChange={(event) => updateCard("link", event.target.value)} placeholder="https://..." /></label>
-
               <div className="color-grid">
                 {([
                   ["backgroundColor", "卡片底色"],
