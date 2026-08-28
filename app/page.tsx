@@ -43,19 +43,12 @@ type BuilderState = {
   cards: CardConfig[];
 };
 
-type LiffApi = {
-  init: (config: { liffId: string }) => Promise<void>;
-  isLoggedIn: () => boolean;
-  login: (config?: { redirectUri?: string }) => void;
-  isApiAvailable: (name: string) => boolean;
-  shareTargetPicker: (messages: unknown[]) => Promise<unknown>;
+type Account = {
+  displayName: string;
+  role: "user" | "admin";
+  plan: "free" | "monthly" | "annual" | "lifetime";
+  vip: boolean;
 };
-
-declare global {
-  interface Window {
-    liff?: LiffApi;
-  }
-}
 
 const STORAGE_KEY = "line-card-lab:v5";
 const FONT_SIZES: FontSize[] = ["xxs", "xs", "sm", "md", "lg", "xl", "xxl", "3xl", "4xl", "5xl"];
@@ -162,10 +155,6 @@ function safeUri(uri: string) {
   return "https://line.me";
 }
 
-function placeholderImage(label = "YOUR BRAND") {
-  return `https://dummyimage.com/1200x780/06c755/ffffff.png&text=${encodeURIComponent(label)}`;
-}
-
 function imageEdgeColor(image: HTMLImageElement) {
   const sampleSize = 32;
   const canvas = document.createElement("canvas");
@@ -213,79 +202,6 @@ async function prepareImage(file: File) {
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.86));
   if (!blob) throw new Error("图片处理失败");
   return blob;
-}
-
-function buildFlexMessage(state: BuilderState) {
-  const { settings, cards } = state;
-
-  return {
-    type: "flex",
-    altText: settings.altText || "请在手机上查看这组卡片。",
-    contents: {
-      type: "carousel",
-      contents: cards.map((card) => {
-        const cardTarget = safeUri(card.buttons[0]?.link || "");
-        const bubble: Record<string, unknown> = {
-          type: "bubble",
-          hero: {
-            type: "image",
-            url: safeUri(card.image) === card.image.trim() ? card.image.trim() : placeholderImage(card.title),
-            size: "full",
-            aspectRatio: settings.ratio || "20:13",
-            aspectMode: "fit",
-            backgroundColor: card.imageBackgroundColor || card.backgroundColor || "#111815",
-            action: { type: "uri", uri: cardTarget },
-          },
-          body: {
-            type: "box",
-            layout: "vertical",
-            spacing: "md",
-            backgroundColor: card.backgroundColor || "#ffffff",
-            action: { type: "uri", uri: cardTarget },
-            contents: [
-              {
-                type: "text",
-                text: card.title || "未命名卡片",
-                size: settings.titleSize,
-                color: card.titleColor || "#111815",
-                weight: "bold",
-                wrap: true,
-              },
-              {
-                type: "text",
-                text: card.description || "请填写卡片说明。",
-                size: settings.descriptionSize,
-                color: card.descriptionColor || "#69716d",
-                wrap: true,
-              },
-            ],
-          },
-        };
-
-        if (card.buttons.length) {
-          bubble.footer = {
-            type: "box",
-            layout: "vertical",
-            spacing: "sm",
-            backgroundColor: card.backgroundColor || "#ffffff",
-            contents: card.buttons.map((button) => ({
-              type: "button",
-              style: button.style,
-              height: settings.buttonHeight,
-              color: button.color || "#06c755",
-              action: {
-                type: "uri",
-                label: button.text || "查看详情",
-                uri: safeUri(button.link),
-              },
-            })),
-          };
-        }
-
-        return bubble;
-      }),
-    },
-  };
 }
 
 function toCompatibilityVcard(state: BuilderState) {
@@ -399,26 +315,18 @@ function normalizeImported(raw: unknown): BuilderState {
   };
 }
 
-function loadLiffSdk() {
-  if (window.liff) return Promise.resolve(window.liff);
-  return new Promise<LiffApi>((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>('script[data-liff-sdk="true"]');
-    if (existing) {
-      existing.addEventListener("load", () => window.liff ? resolve(window.liff) : reject(new Error("LIFF SDK 未加载")));
-      existing.addEventListener("error", () => reject(new Error("LIFF SDK 加载失败")));
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
-    script.async = true;
-    script.dataset.liffSdk = "true";
-    script.onload = () => window.liff ? resolve(window.liff) : reject(new Error("LIFF SDK 未加载"));
-    script.onerror = () => reject(new Error("LIFF SDK 加载失败"));
-    document.head.appendChild(script);
-  });
+function AccountActions({ account }: { account: Account | null | undefined }) {
+  return (
+    <div className="topbar-actions">
+      {account?.role === "admin" && <a href="/admin">后台</a>}
+      <a className={account?.vip ? "account-link vip" : "account-link"} href="/account">
+        {account === undefined ? "账户" : account ? (account.vip ? "VIP 账户" : "免费账户") : "登录 / 注册"}
+      </a>
+    </div>
+  );
 }
 
-function TemplateCatalog({ onOpenLineCarousel }: { onOpenLineCarousel: () => void }) {
+function TemplateCatalog({ onOpenLineCarousel, account }: { onOpenLineCarousel: () => void; account: Account | null | undefined }) {
   return (
     <main className="site-shell catalog-shell" id="top">
       <header className="topbar catalog-topbar">
@@ -426,6 +334,7 @@ function TemplateCatalog({ onOpenLineCarousel }: { onOpenLineCarousel: () => voi
           <span className="brand-mark">L</span>
           <span>LINE 卡片实验室</span>
         </a>
+        <AccountActions account={account} />
       </header>
       <section className="catalog-page" aria-labelledby="catalog-title">
         <div className="catalog-heading">
@@ -443,7 +352,7 @@ function TemplateCatalog({ onOpenLineCarousel }: { onOpenLineCarousel: () => voi
                 {template.form === "custom-line-carousel" ? (
                   <button type="button" onClick={onOpenLineCarousel}>▣&nbsp; 点击建立名片</button>
                 ) : (
-                  <a href={`/original/${template.form}`}>▣&nbsp; 点击建立名片</a>
+                  <a href={account ? `/original/${template.form}` : `/account?returnTo=${encodeURIComponent(`/original/${template.form}`)}`}>▣&nbsp; 点击建立名片</a>
                 )}
               </div>
             </article>
@@ -464,6 +373,7 @@ export default function Home() {
   const [toast, setToast] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageSourceMode, setImageSourceMode] = useState<ImageSourceMode>("url");
+  const [account, setAccount] = useState<Account | null | undefined>(undefined);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -475,11 +385,24 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data: { user?: Account | null }) => setAccount(data.user || null))
+      .catch(() => setAccount(null));
+  }, []);
+
+  useEffect(() => {
+    if (account !== null || new URLSearchParams(window.location.search).get("template") !== "custom-line-carousel") return;
+    window.location.replace("/account?returnTo=%2F%3Ftemplate%3Dcustom-line-carousel");
+  }, [account]);
+
+  useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const normalized = migrateLegacyDefault(normalizeImported(JSON.parse(saved)));
         normalized.settings.chatName = normalized.settings.chatName || "官网邀请";
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- restore the local draft after mount
         setBuilder(normalized);
         setActiveCardId(normalized.cards[0].id);
       }
@@ -628,6 +551,10 @@ export default function Home() {
   };
 
   const openLineCarousel = () => {
+    if (!account) {
+      window.location.href = "/account?returnTo=%2F%3Ftemplate%3Dcustom-line-carousel";
+      return;
+    }
     window.history.pushState({}, "", "?template=custom-line-carousel");
     setShowEditor(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -639,7 +566,7 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  if (!showEditor) return <TemplateCatalog onOpenLineCarousel={openLineCarousel} />;
+  if (!showEditor || !account) return <TemplateCatalog onOpenLineCarousel={openLineCarousel} account={account} />;
 
   return (
     <main className="site-shell" id="top">
@@ -648,6 +575,7 @@ export default function Home() {
           <span className="brand-mark">L</span>
           <span>LINE 卡片实验室</span>
         </a>
+        <AccountActions account={account} />
       </header>
 
       <div className="editor-return-row">
@@ -767,8 +695,14 @@ export default function Home() {
           </section>
 
           <section className="editor-section compact-section">
-            <a className={`create-card-action ${compatibilityLink ? "" : "disabled"}`} href={compatibilityLink || undefined} target="_blank" rel="noreferrer" aria-disabled={!compatibilityLink}>
-              <span><small>LINE</small>{compatibilityLink ? "建立卡片" : "正在准备卡片…"}</span><b>↗</b>
+            <a
+              className={`create-card-action ${account?.vip && !compatibilityLink ? "disabled" : ""}`}
+              href={account?.vip ? (compatibilityLink || undefined) : "/account?returnTo=%2F%3Ftemplate%3Dcustom-line-carousel"}
+              target={account?.vip ? "_blank" : undefined}
+              rel={account?.vip ? "noreferrer" : undefined}
+              aria-disabled={account?.vip ? !compatibilityLink : false}
+            >
+              <span><small>LINE</small>{account === undefined ? "读取账户…" : account.vip ? (compatibilityLink ? "分享卡片" : "正在准备卡片…") : "开通 VIP 后分享"}</span><b>↗</b>
             </a>
           </section>
 
