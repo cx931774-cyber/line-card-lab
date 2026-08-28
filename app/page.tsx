@@ -5,30 +5,6 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 type FontSize = "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "3xl" | "4xl" | "5xl";
 type ButtonStyle = "primary" | "secondary" | "link";
 type ImageSourceMode = "upload" | "url";
-type TemplateId =
-  | "line-carousel-1"
-  | "chatgpt-1"
-  | "psprint-592"
-  | "facebook-post-link-1"
-  | "psprint-3949"
-  | "acnh-passport-1"
-  | "acnh-postcard-1"
-  | "chatbot-tw-1"
-  | "microprogram"
-  | "taichung-gov-tw"
-  | "print-vcard"
-  | "ionex";
-
-type TemplateDefinition = {
-  id: TemplateId;
-  name: string;
-  description: string;
-  backgroundColor: string;
-  titleColor: string;
-  descriptionColor: string;
-  buttonColor: string;
-  ratio: string;
-};
 
 type CardButton = {
   id: string;
@@ -63,7 +39,6 @@ type BuilderSettings = {
 
 type BuilderState = {
   version: 1;
-  templateId: TemplateId;
   settings: BuilderSettings;
   cards: CardConfig[];
 };
@@ -82,24 +57,18 @@ declare global {
   }
 }
 
-const STORAGE_KEY = "line-card-lab:v6";
+const STORAGE_KEY = "line-card-lab:v5";
 const FONT_SIZES: FontSize[] = ["xxs", "xs", "sm", "md", "lg", "xl", "xxl", "3xl", "4xl", "5xl"];
 const COMPAT_SHARE_PAGE = "https://liff.line.me/1654437282-A1Bj7p4a/share-json5gzip.html";
+const COMPAT_TEMPLATE = "https://taichunmin.idv.tw/liff-businesscard/cards/line-carousel-1.txt";
 
-const TEMPLATES: TemplateDefinition[] = [
-  { id: "line-carousel-1", name: "多頁訊息 1", description: "商品与广告轮播", backgroundColor: "#ffffff", titleColor: "#111815", descriptionColor: "#69716d", buttonColor: "#06c755", ratio: "20:13" },
-  { id: "chatgpt-1", name: "ChatGPT 問與答", description: "对话问答式卡片", backgroundColor: "#ffffff", titleColor: "#202123", descriptionColor: "#4d5156", buttonColor: "#10a37f", ratio: "1:1" },
-  { id: "psprint-592", name: "Corporate Buzz", description: "深色企业名片", backgroundColor: "#121816", titleColor: "#ffffff", descriptionColor: "#c4cec8", buttonColor: "#d8ff5f", ratio: "20:13" },
-  { id: "facebook-post-link-1", name: "Facebook Post Link", description: "社交链接分享卡片", backgroundColor: "#ffffff", titleColor: "#1c1e21", descriptionColor: "#65676b", buttonColor: "#1877f2", ratio: "20:13" },
-  { id: "psprint-3949", name: "Right Align", description: "右对齐图文名片", backgroundColor: "#f7eee3", titleColor: "#231d19", descriptionColor: "#715f54", buttonColor: "#985f45", ratio: "1:1" },
-  { id: "acnh-passport-1", name: "動物森友會護照", description: "柔和圆形头像护照", backgroundColor: "#f6f0c4", titleColor: "#496d62", descriptionColor: "#675f46", buttonColor: "#6aaa64", ratio: "1:1" },
-  { id: "acnh-postcard-1", name: "動物森友會心意卡", description: "温暖手写明信片", backgroundColor: "#fff4d8", titleColor: "#5a3c28", descriptionColor: "#7a5a45", buttonColor: "#e7895a", ratio: "20:13" },
-  { id: "chatbot-tw-1", name: "Chatbot 台灣開發者", description: "科技社群名片", backgroundColor: "#0e2546", titleColor: "#ffffff", descriptionColor: "#cdd9e8", buttonColor: "#36c5f0", ratio: "1:1" },
-  { id: "microprogram", name: "微程式資訊 LINE 名片", description: "红白企业识别名片", backgroundColor: "#ffffff", titleColor: "#b5152b", descriptionColor: "#5d6165", buttonColor: "#b5152b", ratio: "20:13" },
-  { id: "taichung-gov-tw", name: "臺中市政府 LINE Bot", description: "青绿色政务名片", backgroundColor: "#edf8f7", titleColor: "#006b68", descriptionColor: "#46706e", buttonColor: "#00a9a5", ratio: "20:13" },
-  { id: "print-vcard", name: "極簡印刷名片", description: "黑白极简个人名片", backgroundColor: "#ffffff", titleColor: "#0f0f0f", descriptionColor: "#666666", buttonColor: "#111111", ratio: "1:1" },
-  { id: "ionex", name: "IONEX 綠能名片", description: "荧光绿黑科技名片", backgroundColor: "#111913", titleColor: "#ffffff", descriptionColor: "#b8c5bc", buttonColor: "#8bd600", ratio: "20:13" },
-];
+const LEGACY_SECOND_BUTTON: CardButton = {
+  id: "strategy-work",
+  text: "查看服务与案例",
+  link: "https://example.com/work",
+  color: "#167a47",
+  style: "link",
+};
 
 const DEFAULT_CARD: CardConfig = {
   id: "brand-strategy",
@@ -121,9 +90,28 @@ const DEFAULT_CARD: CardConfig = {
   ],
 };
 
+const LEGACY_SECOND_CARD: CardConfig = {
+  id: "web-experience",
+  image: "https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=1200&q=85",
+  link: "https://example.com/web",
+  title: "让网页成为品牌最好用的名片",
+  description: "兼顾叙事、转化与速度，做一套真正能长期使用的数字体验。",
+  backgroundColor: "#efffe8",
+  titleColor: "#102117",
+  descriptionColor: "#516057",
+  buttons: [
+    {
+      id: "web-plan",
+      text: "查看网页方案",
+      link: "https://example.com/web-plan",
+      color: "#102117",
+      style: "primary",
+    },
+  ],
+};
+
 const DEFAULT_STATE: BuilderState = {
   version: 1,
-  templateId: "line-carousel-1",
   settings: {
     altText: "",
     ratio: "20:13",
@@ -135,6 +123,16 @@ const DEFAULT_STATE: BuilderState = {
   },
   cards: [DEFAULT_CARD],
 };
+
+function migrateLegacyDefault(state: BuilderState) {
+  const legacyCards = [
+    { ...DEFAULT_CARD, buttons: [...DEFAULT_CARD.buttons, LEGACY_SECOND_BUTTON] },
+    LEGACY_SECOND_CARD,
+  ];
+  return JSON.stringify(state.cards) === JSON.stringify(legacyCards)
+    ? { ...state, cards: [DEFAULT_CARD] }
+    : state;
+}
 
 function newId(prefix: string) {
   const suffix = typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -203,137 +201,101 @@ async function prepareImage(file: File) {
   return blob;
 }
 
-function templateById(id: TemplateId) {
-  return TEMPLATES.find((template) => template.id === id) || TEMPLATES[0];
-}
-
-function buildBubble(card: CardConfig, settings: BuilderSettings, templateId: TemplateId) {
-  const target = safeUri(card.buttons[0]?.link || "");
-  const imageUrl = safeUri(card.image) === card.image.trim() ? card.image.trim() : placeholderImage(card.title);
-  const title = {
-    type: "text",
-    text: card.title || "未命名卡片",
-    size: settings.titleSize,
-    color: card.titleColor || "#111815",
-    weight: "bold",
-    wrap: true,
-  };
-  const description = {
-    type: "text",
-    text: card.description || "请填写卡片说明。",
-    size: settings.descriptionSize,
-    color: card.descriptionColor || "#69716d",
-    wrap: true,
-  };
-  const buttons = card.buttons.map((button) => ({
-    type: "button",
-    style: button.style,
-    height: settings.buttonHeight,
-    color: button.color || "#06c755",
-    action: { type: "uri", label: button.text || "查看详情", uri: safeUri(button.link) },
-  }));
-  const image = {
-    type: "image",
-    url: imageUrl,
-    size: "full",
-    aspectRatio: settings.ratio || "20:13",
-    aspectMode: "fit",
-    backgroundColor: card.imageBackgroundColor || card.backgroundColor || "#111815",
-    action: { type: "uri", uri: target },
-  };
-  const footer = buttons.length ? {
-    type: "box",
-    layout: "vertical",
-    spacing: "sm",
-    backgroundColor: card.backgroundColor || "#ffffff",
-    contents: buttons,
-  } : undefined;
-
-  if (templateId === "chatgpt-1") {
-    return {
-      type: "bubble",
-      body: {
-        type: "box", layout: "vertical", spacing: "md", paddingAll: "18px", backgroundColor: card.backgroundColor,
-        action: { type: "uri", uri: target },
-        contents: [
-          { type: "box", layout: "horizontal", spacing: "md", alignItems: "center", contents: [
-            { type: "box", layout: "vertical", width: "48px", height: "48px", cornerRadius: "24px", contents: [{ ...image, aspectRatio: "1:1", aspectMode: "cover" }] },
-            { type: "text", text: "ChatGPT", color: card.titleColor, weight: "bold", size: "sm", flex: 1 },
-          ] },
-          { type: "box", layout: "vertical", paddingAll: "12px", cornerRadius: "14px", backgroundColor: "#f2f3f5", contents: [title] },
-          description,
-        ],
-      },
-      ...(footer ? { footer } : {}),
-    };
-  }
-
-  if (templateId === "psprint-3949" || templateId === "print-vcard") {
-    return {
-      type: "bubble",
-      body: {
-        type: "box", layout: "horizontal", spacing: "lg", paddingAll: "18px", backgroundColor: card.backgroundColor,
-        action: { type: "uri", uri: target },
-        contents: [
-          { type: "box", layout: "vertical", flex: 2, cornerRadius: templateId === "print-vcard" ? "0px" : "14px", contents: [{ ...image, aspectRatio: "1:1", aspectMode: "cover" }] },
-          { type: "box", layout: "vertical", flex: 3, spacing: "md", justifyContent: "center", alignItems: "flex-end", contents: [
-            { ...title, align: "end" }, { ...description, align: "end" }, ...buttons,
-          ] },
-        ],
-      },
-    };
-  }
-
-  if (templateId === "acnh-passport-1" || templateId === "chatbot-tw-1") {
-    return {
-      type: "bubble",
-      body: {
-        type: "box", layout: "vertical", spacing: "md", paddingAll: "20px", alignItems: "center", backgroundColor: card.backgroundColor,
-        action: { type: "uri", uri: target },
-        contents: [
-          { type: "box", layout: "vertical", width: "150px", height: "150px", cornerRadius: "75px", contents: [{ ...image, aspectRatio: "1:1", aspectMode: "cover" }] },
-          { ...title, align: "center" }, { ...description, align: "center" }, ...buttons,
-        ],
-      },
-    };
-  }
-
-  const heroMode = templateId === "facebook-post-link-1" ? "cover" : "fit";
-  const bodyContents: Array<Record<string, unknown>> = [title, description];
-  if (templateId === "facebook-post-link-1") {
-    bodyContents.push({ type: "separator", color: "#e4e6eb" });
-    bodyContents.push({ type: "text", text: "WWW.GOOGLE.COM", size: "xxs", color: "#8a8d91" });
-  }
-  if (templateId === "acnh-postcard-1") {
-    bodyContents.unshift({ type: "text", text: "POST CARD", size: "xxs", color: card.descriptionColor, weight: "bold", align: "center" });
-  }
-  if (templateId === "microprogram" || templateId === "taichung-gov-tw" || templateId === "ionex") {
-    bodyContents.unshift({ type: "separator", color: card.buttons[0]?.color || "#06c755" });
-  }
-
-  return {
-    type: "bubble",
-    hero: { ...image, aspectMode: heroMode },
-    body: {
-      type: "box",
-      layout: "vertical",
-      spacing: "md",
-      backgroundColor: card.backgroundColor || "#ffffff",
-      action: { type: "uri", uri: target },
-      contents: bodyContents,
-    },
-    ...(footer ? { footer } : {}),
-  };
-}
-
 function buildFlexMessage(state: BuilderState) {
+  const { settings, cards } = state;
+
   return {
     type: "flex",
-    altText: state.settings.altText || "请在手机上查看这组卡片。",
+    altText: settings.altText || "请在手机上查看这组卡片。",
     contents: {
       type: "carousel",
-      contents: state.cards.map((card) => buildBubble(card, state.settings, state.templateId)),
+      contents: cards.map((card) => {
+        const cardTarget = safeUri(card.buttons[0]?.link || "");
+        const bubble: Record<string, unknown> = {
+          type: "bubble",
+          hero: {
+            type: "image",
+            url: safeUri(card.image) === card.image.trim() ? card.image.trim() : placeholderImage(card.title),
+            size: "full",
+            aspectRatio: settings.ratio || "20:13",
+            aspectMode: "fit",
+            backgroundColor: card.imageBackgroundColor || card.backgroundColor || "#111815",
+            action: { type: "uri", uri: cardTarget },
+          },
+          body: {
+            type: "box",
+            layout: "vertical",
+            spacing: "md",
+            backgroundColor: card.backgroundColor || "#ffffff",
+            action: { type: "uri", uri: cardTarget },
+            contents: [
+              {
+                type: "text",
+                text: card.title || "未命名卡片",
+                size: settings.titleSize,
+                color: card.titleColor || "#111815",
+                weight: "bold",
+                wrap: true,
+              },
+              {
+                type: "text",
+                text: card.description || "请填写卡片说明。",
+                size: settings.descriptionSize,
+                color: card.descriptionColor || "#69716d",
+                wrap: true,
+              },
+            ],
+          },
+        };
+
+        if (card.buttons.length) {
+          bubble.footer = {
+            type: "box",
+            layout: "vertical",
+            spacing: "sm",
+            backgroundColor: card.backgroundColor || "#ffffff",
+            contents: card.buttons.map((button) => ({
+              type: "button",
+              style: button.style,
+              height: settings.buttonHeight,
+              color: button.color || "#06c755",
+              action: {
+                type: "uri",
+                label: button.text || "查看详情",
+                uri: safeUri(button.link),
+              },
+            })),
+          };
+        }
+
+        return bubble;
+      }),
     },
+  };
+}
+
+function toCompatibilityVcard(state: BuilderState) {
+  return {
+    altText: state.settings.altText,
+    btnHeight: state.settings.buttonHeight,
+    descSize: state.settings.descriptionSize,
+    ratio: state.settings.ratio,
+    titleSize: state.settings.titleSize,
+    cards: state.cards.map((card) => ({
+      bgColor: card.backgroundColor,
+      desc: card.description,
+      descColor: card.descriptionColor,
+      image: card.image,
+      link: safeUri(card.buttons[0]?.link || ""),
+      title: card.title,
+      titleColor: card.titleColor,
+      btns: card.buttons.map((button) => ({
+        color: button.color,
+        link: safeUri(button.link),
+        style: button.style,
+        text: button.text,
+      })),
+    })),
   };
 }
 
@@ -361,13 +323,13 @@ function textToBase64Url(value: string) {
 
 async function createCompatibilityLink(state: BuilderState) {
   if (!("CompressionStream" in window)) throw new Error("当前浏览器不支持链接压缩");
-  const payload = JSON.stringify(sortForStableJson({ message: buildFlexMessage(state) }));
+  const payload = JSON.stringify(sortForStableJson(toCompatibilityVcard(state)));
   const compressed = new Blob([payload])
     .stream()
     .pipeThrough(new CompressionStream("deflate"));
   const bytes = new Uint8Array(await new Response(compressed).arrayBuffer());
   const url = new URL(COMPAT_SHARE_PAGE);
-  url.searchParams.set("template", textToBase64Url(`${window.location.origin}/api/flex-template`));
+  url.searchParams.set("template", textToBase64Url(COMPAT_TEMPLATE));
   url.searchParams.set("json5gzip", bytesToBase64Url(bytes));
   return url.href;
 }
@@ -379,8 +341,7 @@ function normalizeImported(raw: unknown): BuilderState {
   if (input.settings && Array.isArray(input.cards)) {
     const imported = input as unknown as BuilderState;
     if (!imported.cards.length) throw new Error("至少需要一张卡片");
-    const templateId = TEMPLATES.some((template) => template.id === imported.templateId) ? imported.templateId : "line-carousel-1";
-    return { ...imported, templateId, version: 1 };
+    return { ...imported, version: 1 };
   }
 
   const json5 = (input.json5 || input) as Record<string, unknown>;
@@ -412,7 +373,6 @@ function normalizeImported(raw: unknown): BuilderState {
 
   return {
     version: 1,
-    templateId: "line-carousel-1",
     settings: {
       ...DEFAULT_STATE.settings,
       altText: String(json5.altText || DEFAULT_STATE.settings.altText),
@@ -460,7 +420,7 @@ export default function Home() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const normalized = normalizeImported(JSON.parse(saved));
+        const normalized = migrateLegacyDefault(normalizeImported(JSON.parse(saved)));
         normalized.settings.chatName = normalized.settings.chatName || "官网邀请";
         setBuilder(normalized);
         setActiveCardId(normalized.cards[0].id);
@@ -490,7 +450,6 @@ export default function Home() {
 
   const activeIndex = Math.max(0, builder.cards.findIndex((card) => card.id === activeCardId));
   const activeCard = builder.cards[activeIndex] || builder.cards[0];
-  const selectedTemplate = templateById(builder.templateId);
 
   const notify = (message: string) => {
     setToast(message);
@@ -509,22 +468,6 @@ export default function Home() {
     setBuilder((current) => ({
       ...current,
       cards: current.cards.map((card) => card.id === activeCard.id ? { ...card, [key]: value } : card),
-    }));
-  };
-
-  const selectTemplate = (templateId: TemplateId) => {
-    const template = templateById(templateId);
-    setBuilder((current) => ({
-      ...current,
-      templateId,
-      settings: { ...current.settings, ratio: template.ratio },
-      cards: current.cards.map((card) => ({
-        ...card,
-        backgroundColor: template.backgroundColor,
-        titleColor: template.titleColor,
-        descriptionColor: template.descriptionColor,
-        buttons: card.buttons.map((button) => ({ ...button, color: template.buttonColor })),
-      })),
     }));
   };
 
@@ -640,20 +583,6 @@ export default function Home() {
           <div className="panel-heading">
             <div><span className="step">01</span><h2>编辑卡片</h2></div>
           </div>
-
-          <section className="editor-section template-picker">
-            <div className="template-picker-copy">
-              <small>TEMPLATE</small>
-              <strong>样板样式</strong>
-              <span>{selectedTemplate.description}</span>
-            </div>
-            <label htmlFor="template-style">
-              <span>共 12 个样板</span>
-              <select id="template-style" value={builder.templateId} onChange={(event) => selectTemplate(event.target.value as TemplateId)}>
-                {TEMPLATES.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}
-              </select>
-            </label>
-          </section>
 
           <div className="card-tabs" aria-label="卡片列表">
             {builder.cards.map((card, index) => (
@@ -773,7 +702,7 @@ export default function Home() {
           <div className="preview-sticky">
             <div className="panel-heading inverse">
               <div><span className="step">02</span><h2>LINE 实时预览</h2></div>
-              <span className="card-count">{selectedTemplate.name} · {activeIndex + 1} / {builder.cards.length}</span>
+              <span className="card-count">输入即更新 · {activeIndex + 1} / {builder.cards.length}</span>
             </div>
 
             <div className="phone-stage">
@@ -782,7 +711,7 @@ export default function Home() {
                 <div className="phone-notch" />
                 <div className="phone-header"><span>‹</span><b>{builder.settings.chatName || "LINE"}</b><span>⋯</span></div>
                 <div className="chat-time">今天 10:24</div>
-                <article className={`line-card template-${builder.templateId}`} style={{ background: activeCard.backgroundColor }}>
+                <article className="line-card" style={{ background: activeCard.backgroundColor }}>
                   <div className="card-visual" style={{ aspectRatio: builder.settings.ratio.replace(":", " / "), backgroundColor: activeCard.imageBackgroundColor || activeCard.backgroundColor }}>
                     {activeCard.image && <>
                       <img className="visual-backdrop" key={`${activeCard.image}-backdrop`} src={activeCard.image} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none"; }} />
