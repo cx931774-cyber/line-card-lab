@@ -1,7 +1,6 @@
 const ORIGINAL_FORMS = new Set([
   "chatgpt-1",
   "json5",
-  "line-carousel-1",
   "psprint-592",
   "google-sheet",
   "csv",

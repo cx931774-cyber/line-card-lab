@@ -63,10 +63,9 @@ const COMPAT_SHARE_PAGE = "https://liff.line.me/1654437282-A1Bj7p4a/share-json5g
 const COMPAT_TEMPLATE = "https://taichunmin.idv.tw/liff-businesscard/cards/line-carousel-1.txt";
 
 const CATALOG_TEMPLATES = [
-  { form: "custom-line-carousel", name: "官网邀请卡片", preview: "https://i.imgur.com/yBjZFmf.png", description: "当前新建的自定义样板，支持实时预览、图片上传或链接，以及多张卡片。" },
+  { form: "custom-line-carousel", name: "多頁訊息 1", preview: "https://i.imgur.com/yBjZFmf.png", description: "來自 LINE 的樣板，最多 12 張卡片，很適合用來製作廣告傳單。" },
   { form: "chatgpt-1", name: "ChatGPT 問與答", preview: "https://i.imgur.com/0uU5aCG.png", description: "让你在 LINE 中模拟 ChatGPT 的问答画面，上面有开启自订链接及再次分享的按钮。" },
   { form: "json5", name: "JSON5", preview: "https://i.imgur.com/ci4T6xG.png", description: "提供给有程式背景的开发者使用，可以使用 JSON5 API 来当作样板的资料来源。" },
-  { form: "line-carousel-1", name: "多頁訊息 1", preview: "https://i.imgur.com/0pbirUY.png", description: "来自 LINE 的样板，最多 12 张卡片，很适合用来制作广告传单。" },
   { form: "psprint-592", name: "Corporate Buzz", preview: "https://i.imgur.com/AjbhMam.png", description: "来自 PsPrint 的样板，上面有链接可以开启，很适合用来制作个人名片。" },
   { form: "google-sheet", name: "Google Sheet", preview: "https://i.imgur.com/Jdb68bE.png", description: "从 Google Sheet 读取名片资料来产生名片。" },
   { form: "csv", name: "CSV", preview: "https://i.imgur.com/CU3myIc.png", description: "从 CSV 读取名片资料来产生名片。" },
