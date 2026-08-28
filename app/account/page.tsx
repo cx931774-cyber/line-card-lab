@@ -18,10 +18,13 @@ const PLANS = [
   { id: "annual", name: "年度 VIP", price: 300, unit: "/ 年", note: "开通后使用 365 天" },
   { id: "lifetime", name: "永久 VIP", price: 588, unit: "一次付费", note: "永久使用全部功能" },
 ] as const;
+type VipPlan = (typeof PLANS)[number];
 
 export default function AccountPage() {
   const [account, setAccount] = useState<Account | null>(null);
-  const [activationUrl, setActivationUrl] = useState("https://www.google.com");
+  const [payment, setPayment] = useState({ usdtAddress: "", usdtNetwork: "" });
+  const [selectedPlan, setSelectedPlan] = useState<VipPlan | null>(null);
+  const [copyMessage, setCopyMessage] = useState("");
   const [mode, setMode] = useState<"login" | "register">("login");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -35,10 +38,10 @@ export default function AccountPage() {
         try {
           const response = await fetch(`/api/auth/me?refresh=${Date.now()}`, { cache: "no-store" });
           if (!response.ok) throw new Error("account request failed");
-          const data = await response.json() as { user: Account | null; activationUrl: string };
+          const data = await response.json() as { user: Account | null; usdtAddress: string; usdtNetwork: string };
           if (!active) return;
           setAccount(data.user);
-          setActivationUrl(data.activationUrl);
+          setPayment({ usdtAddress: data.usdtAddress || "", usdtNetwork: data.usdtNetwork || "" });
           setError("");
           setLoading(false);
           return;
@@ -78,15 +81,16 @@ export default function AccountPage() {
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     setAccount(null);
+    setSelectedPlan(null);
   };
 
-  const checkoutUrl = (plan: string) => {
+  const copyAddress = async () => {
     try {
-      const url = new URL(activationUrl);
-      url.searchParams.set("plan", plan);
-      if (account?.email) url.searchParams.set("email", account.email);
-      return url.href;
-    } catch { return activationUrl; }
+      await navigator.clipboard.writeText(payment.usdtAddress);
+      setCopyMessage("已复制");
+    } catch {
+      setCopyMessage("复制失败，请手动复制");
+    }
   };
 
   return (
@@ -115,10 +119,21 @@ export default function AccountPage() {
           {PLANS.map((plan) => (
             <article className={`price-card ${plan.id === "annual" ? "featured" : ""}`} key={plan.id}>
               <span>{plan.name}</span><h2><small>USD</small> ${plan.price}</h2><p>{plan.unit}</p><em>{plan.note}</em>
-              {account?.vip ? <button type="button" disabled>已开通 VIP</button> : account ? <a href={checkoutUrl(plan.id)} target="_blank" rel="noreferrer">前往开通</a> : <button type="button" onClick={() => setMode("login")}>登录后开通</button>}
+              {account?.vip ? <button type="button" disabled>已开通 VIP</button> : account ? <button type="button" onClick={() => { setSelectedPlan(plan); setCopyMessage(""); }}>查看充值信息</button> : <button type="button" onClick={() => setMode("login")}>登录后开通</button>}
             </article>
           ))}
         </div>
+        {account && !account.vip && selectedPlan && (
+          <section className="recharge-panel" role="dialog" aria-label="USDT 充值信息">
+            <div className="recharge-heading"><div><small>USDT PAYMENT</small><h2>{selectedPlan.name}</h2></div><button type="button" aria-label="关闭充值信息" onClick={() => setSelectedPlan(null)}>×</button></div>
+            <p className="recharge-amount">应付金额 <strong>{selectedPlan.price} USDT</strong></p>
+            {payment.usdtAddress ? <>
+              <dl><div><dt>链网络</dt><dd>{payment.usdtNetwork}</dd></div><div><dt>USDT 收款地址</dt><dd><code>{payment.usdtAddress}</code></dd></div></dl>
+              <button className="copy-address" type="button" onClick={copyAddress}>{copyMessage || "复制充值地址"}</button>
+              <p className="recharge-note">请确认充值网络与上方一致。转错网络可能导致资产无法找回。</p>
+            </> : <p className="recharge-unavailable">管理员尚未设置 USDT 充值地址。</p>}
+          </section>
+        )}
       </section>
     </main>
   );

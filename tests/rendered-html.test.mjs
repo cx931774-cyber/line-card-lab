@@ -36,3 +36,12 @@ test("renders the login and VIP pricing page", async () => {
   assert.match(html, /300/);
   assert.match(html, /588/);
 });
+
+test("renders USDT payment settings in the admin shell", async () => {
+  const response = await render("/admin");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /USDT 收款设置/);
+  assert.match(html, /链网络/);
+  assert.doesNotMatch(html, /跳转到这个地址/);
+});

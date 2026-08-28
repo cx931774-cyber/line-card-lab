@@ -117,9 +117,15 @@ export async function getSessionUser(request: Request): Promise<SessionUser | nu
   return { ...row, role: row.role === "admin" ? "admin" : "user", plan: row.plan as Plan, vip };
 }
 
-export async function activationUrl() {
-  const row = await database().prepare("SELECT value FROM settings WHERE key = 'activation_url'").first<{ value: string }>();
-  return row?.value || "https://www.google.com";
+export async function paymentDetails() {
+  const result = await database().prepare(
+    "SELECT key, value FROM settings WHERE key IN ('usdt_address', 'usdt_network')",
+  ).all<{ key: string; value: string }>();
+  const values = new Map(result.results.map((row) => [row.key, row.value]));
+  return {
+    usdtAddress: values.get("usdt_address") || "",
+    usdtNetwork: values.get("usdt_network") || "",
+  };
 }
 
 export async function hasAdmin() {
