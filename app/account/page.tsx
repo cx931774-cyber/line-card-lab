@@ -32,17 +32,27 @@ export default function AccountPage() {
 
   useEffect(() => {
     let active = true;
-    fetch("/api/auth/me", { cache: "no-store" })
-      .then((response) => response.json())
-      .then((data: { user: Account | null; activationUrl: string }) => {
-        if (!active) return;
-        setAccount(data.user);
-        setActivationUrl(data.activationUrl);
-        setLoading(false);
-        const destination = new URLSearchParams(window.location.search).get("returnTo") || "/";
-        if (data.user && destination.startsWith("/") && !destination.startsWith("//") && destination !== "/") window.location.href = destination;
-      })
-      .catch(() => { if (active) { setError("账户服务暂时不可用"); setLoading(false); } });
+    const loadAccount = async () => {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const response = await fetch(`/api/auth/me?refresh=${Date.now()}`, { cache: "no-store" });
+          if (!response.ok) throw new Error("account request failed");
+          const data = await response.json() as { user: Account | null; activationUrl: string };
+          if (!active) return;
+          setAccount(data.user);
+          setActivationUrl(data.activationUrl);
+          setError("");
+          setLoading(false);
+          const destination = new URLSearchParams(window.location.search).get("returnTo") || "/";
+          if (data.user && destination.startsWith("/") && !destination.startsWith("//") && destination !== "/") window.location.href = destination;
+          return;
+        } catch {
+          if (attempt < 2) await new Promise((resolve) => window.setTimeout(resolve, 700 * (attempt + 1)));
+        }
+      }
+      if (active) { setError("账户服务暂时不可用"); setLoading(false); }
+    };
+    void loadAccount();
     return () => { active = false; };
   }, []);
 
@@ -102,7 +112,7 @@ export default function AccountPage() {
             {mode === "register" && <label><span>名称</span><input value={form.displayName} onChange={(event) => setForm({ ...form, displayName: event.target.value })} autoComplete="name" /></label>}
             <label><span>邮箱</span><input type="email" required value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} autoComplete="email" /></label>
             <label><span>密码</span><input type="password" required minLength={8} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} autoComplete={mode === "login" ? "current-password" : "new-password"} /></label>
-            {error && <p className="form-error">{error}</p>}
+            {error && <p className="form-error">{error} <a href="/account">重新载入</a></p>}
             <button className="auth-submit" type="submit" disabled={submitting}>{submitting ? "请稍候…" : mode === "login" ? "登录" : "注册账户"}</button>
           </form>
         ) : <div className="account-loading">正在读取账户…</div>}
