@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "LINE 卡片实验室｜Flex Message 生成器",
+  title: "LINE 卡片生成器｜Flex Message 生成器",
   description: "可视化编辑、实时预览并导出属于你的 LINE Flex Message 轮播卡片。",
 };
 
