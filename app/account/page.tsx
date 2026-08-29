@@ -160,15 +160,17 @@ export default function AccountPage() {
           </form>
         ) : <div className="account-loading">正在读取账户…</div>}
 
-        {rechargeNotice && <p className="recharge-success">{rechargeNotice}</p>}
-        <div className="pricing-grid">
-          {PLANS.map((plan) => (
-            <article className={`price-card ${plan.id === "annual" ? "featured" : ""}`} key={plan.id}>
-              <span>{plan.name}</span><h2><small>USD</small> ${plan.price}</h2><p>{plan.unit}</p><em>{plan.note}</em>
-              {account?.vip ? <button type="button" disabled>已开通 VIP</button> : account ? <button type="button" onClick={() => { setSelectedPlan(plan); setCopyMessage(""); setTransactionHash(""); setRechargeError(""); setRechargeNotice(""); }}>查看充值信息</button> : <button type="button" onClick={() => setMode("login")}>登录后开通</button>}
-            </article>
-          ))}
-        </div>
+        {account && <>
+          {rechargeNotice && <p className="recharge-success">{rechargeNotice}</p>}
+          <div className="pricing-grid">
+            {PLANS.map((plan) => (
+              <article className={`price-card ${plan.id === "annual" ? "featured" : ""}`} key={plan.id}>
+                <span>{plan.name}</span><h2><small>USD</small> ${plan.price}</h2><p>{plan.unit}</p><em>{plan.note}</em>
+                {account.vip ? <button type="button" disabled>已开通 VIP</button> : <button type="button" onClick={() => { setSelectedPlan(plan); setCopyMessage(""); setTransactionHash(""); setRechargeError(""); setRechargeNotice(""); }}>查看充值信息</button>}
+              </article>
+            ))}
+          </div>
+        </>}
       </section>
       {account && !account.vip && selectedPlan && (
         <div className="recharge-modal-backdrop">

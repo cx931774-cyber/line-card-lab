@@ -25,17 +25,13 @@ test("renders the public template catalog and account entry", async () => {
   assert.equal((html.match(/class="template-card"/g) || []).length, 11);
 });
 
-test("renders the login and VIP pricing page", async () => {
+test("hides VIP pricing before login", async () => {
   const response = await render("/account");
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.doesNotMatch(html, /VIP ACCESS|账户与 VIP/);
-  assert.match(html, /月度 VIP/);
-  assert.match(html, /年度 VIP/);
-  assert.match(html, /永久 VIP/);
-  assert.match(html, /19\.9/);
-  assert.match(html, /89/);
-  assert.match(html, /299/);
+  assert.doesNotMatch(html, /月度 VIP|年度 VIP|永久 VIP/);
+  assert.doesNotMatch(html, />USD<|19\.9 USDT|89 USDT|299 USDT/);
 });
 
 test("supports username or email authentication and transaction hash submission", async () => {
