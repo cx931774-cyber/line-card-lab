@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /account
+Disallow: /admin
+Disallow: /api/
+Disallow: /original/
+
+Sitemap: https://linkasmnd.it.com/sitemap.xml

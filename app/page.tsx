@@ -353,8 +353,8 @@ function TemplateCatalog({ onOpenLineCarousel, account }: { onOpenLineCarousel: 
       <section className="catalog-page" aria-labelledby="catalog-title">
         <div className="catalog-heading">
           <span>LINE FLEX MESSAGE</span>
-          <h1 id="catalog-title">樣板列表</h1>
-          <p>選擇一款樣板，進入它自己的名片編輯表單。</p>
+          <h1 id="catalog-title">LINE 卡片樣板列表</h1>
+          <p>選擇一款 LINE 卡片樣板，進入它自己的名片編輯表單。</p>
         </div>
         <div className="template-grid">
           {CATALOG_TEMPLATES.map((template, index) => (

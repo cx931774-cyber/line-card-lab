@@ -20,10 +20,22 @@ test("renders the public template catalog and account entry", async () => {
   const html = await response.text();
   assert.match(html, /<title>LINE 卡片生成器/);
   assert.match(html, /line-brand-icon\.png/);
-  assert.match(html, /樣板列表/);
+  assert.match(html, /LINE 卡片樣板列表/);
   assert.match(html, /登入 \/ 註冊|>帳戶</);
   assert.match(html, /多頁訊息 1/);
   assert.equal((html.match(/class="template-card"/g) || []).length, 11);
+});
+
+test("publishes search-engine discovery files for the canonical domain", async () => {
+  const [robots, sitemap, layout] = await Promise.all([
+    readFile(new URL("../public/robots.txt", import.meta.url), "utf8"),
+    readFile(new URL("../public/sitemap.xml", import.meta.url), "utf8"),
+    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(robots, /Sitemap: https:\/\/linkasmnd\.it\.com\/sitemap\.xml/);
+  assert.match(sitemap, /<loc>https:\/\/linkasmnd\.it\.com\/<\/loc>/);
+  assert.match(layout, /LINE 卡片生成器/);
+  assert.match(layout, /alternates: \{ canonical: "\/" \}/);
 });
 
 test("hides VIP pricing before login", async () => {
