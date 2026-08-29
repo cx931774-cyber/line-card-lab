@@ -46,6 +46,20 @@ test("supports username or email authentication and transaction hash submission"
   assert.match(source, /USDT 充值二维码/);
 });
 
+test("uses optimized local catalog previews", async () => {
+  const source = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  assert.match(source, /\/templates\/custom-line-carousel\.webp/);
+  assert.doesNotMatch(source, /preview: "https:\/\/i\.imgur\.com/);
+  assert.match(source, /loading=\{index < 3 \? "eager" : "lazy"\}/);
+});
+
+test("bundles original templates instead of fetching them per visit", async () => {
+  const source = await readFile(new URL("../app/original/[slug]/route.ts", import.meta.url), "utf8");
+  assert.match(source, /ORIGINAL_HTML/);
+  assert.doesNotMatch(source, /await fetch\(`\$\{ORIGINAL_ROOT\}forms/);
+  assert.match(source, /\/original-assets\/common\.js/);
+});
+
 test("renders USDT payment settings in the admin shell", async () => {
   const response = await render("/admin");
   assert.equal(response.status, 200);

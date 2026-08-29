@@ -1,8 +1,7 @@
 import { getSessionUser, paymentDetails } from "../../../lib/auth";
 
 export async function GET(request: Request) {
-  const user = await getSessionUser(request);
-  const payment = await paymentDetails();
+  const [user, payment] = await Promise.all([getSessionUser(request), paymentDetails()]);
   return Response.json(
     {
       user,

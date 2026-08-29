@@ -1,17 +1,5 @@
 import { getSessionUser } from "../../lib/auth";
-
-const ORIGINAL_FORMS = new Set([
-  "chatgpt-1",
-  "json5",
-  "psprint-592",
-  "google-sheet",
-  "csv",
-  "facebook-post-link-1",
-  "psprint-3949",
-  "acnh-passport-1",
-  "acnh-postcard-1",
-  "chatbot-tw-1",
-]);
+import { ORIGINAL_HTML } from "../templates";
 
 const ORIGINAL_ROOT = "https://taichunmin.idv.tw/liff-businesscard/";
 
@@ -20,7 +8,8 @@ export async function GET(
   context: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await context.params;
-  if (!ORIGINAL_FORMS.has(slug)) return new Response("Not found", { status: 404 });
+  const originalHtml = ORIGINAL_HTML[slug as keyof typeof ORIGINAL_HTML];
+  if (!originalHtml) return new Response("Not found", { status: 404 });
 
   const account = await getSessionUser(request);
   if (!account) {
@@ -28,12 +17,7 @@ export async function GET(
     return Response.redirect(new URL(`/account?returnTo=${returnTo}`, request.url), 302);
   }
 
-  const response = await fetch(`${ORIGINAL_ROOT}forms/${slug}.html`, {
-    headers: { Accept: "text/html" },
-  });
-  if (!response.ok) return new Response("样板暂时无法载入", { status: 502 });
-
-  let html = await response.text();
+  let html = originalHtml;
   if (!account?.vip) {
     const upgradeHref = `/account?returnTo=${encodeURIComponent(`/original/${slug}`)}`;
     html = html.replace(
@@ -45,6 +29,8 @@ export async function GET(
     );
   }
   html = html
+    .replace(/<script src="https:\/\/www\.googletagmanager\.com\/gtag\/js\?[^"]*" async><\/script><script>[\s\S]*?<\/script>/i, '<script>window.gtag={event(){}}</script>')
+    .replace(/https:\/\/taichunmin\.idv\.tw\/liff-businesscard\/js\/common\.js\?cachebust=\d+/g, "/original-assets/common.js")
     .replaceAll(`href="${ORIGINAL_ROOT}"`, 'href="/"')
     .replace(/<button[^>]*navbar-toggler[^>]*>[\s\S]*?<\/button>/gi, "")
     .replace(/link:"https:\/\/taichunmin\.idv\.tw\/liff-businesscard\/[^"]*"/g, 'link:"https://www.google.com"')

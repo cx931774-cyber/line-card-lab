@@ -64,17 +64,17 @@ const COMPAT_SHARE_PAGE = "https://liff.line.me/1654437282-A1Bj7p4a/share-json5g
 const COMPAT_TEMPLATE = "https://taichunmin.idv.tw/liff-businesscard/cards/line-carousel-1.txt";
 
 const CATALOG_TEMPLATES = [
-  { form: "custom-line-carousel", name: "多頁訊息 1", preview: "https://i.imgur.com/yBjZFmf.png", description: "來自 LINE 的樣板，最多 12 張卡片，很適合用來製作廣告傳單。" },
-  { form: "chatgpt-1", name: "ChatGPT 問與答", preview: "https://i.imgur.com/0uU5aCG.png", description: "让你在 LINE 中模拟 ChatGPT 的问答画面，上面有开启自订链接及再次分享的按钮。" },
-  { form: "json5", name: "JSON5", preview: "https://i.imgur.com/ci4T6xG.png", description: "提供给有程式背景的开发者使用，可以使用 JSON5 API 来当作样板的资料来源。" },
-  { form: "psprint-592", name: "Corporate Buzz", preview: "https://i.imgur.com/AjbhMam.png", description: "来自 PsPrint 的样板，上面有链接可以开启，很适合用来制作个人名片。" },
-  { form: "google-sheet", name: "Google Sheet", preview: "https://i.imgur.com/Jdb68bE.png", description: "从 Google Sheet 读取名片资料来产生名片。" },
-  { form: "csv", name: "CSV", preview: "https://i.imgur.com/CU3myIc.png", description: "从 CSV 读取名片资料来产生名片。" },
-  { form: "facebook-post-link-1", name: "Facebook Post Link", preview: "https://i.imgur.com/hO0LAHK.png", description: "让你在 LINE 中模拟 Facebook 分享链接，并且还可再次分享。" },
-  { form: "psprint-3949", name: "Right Align", preview: "https://i.imgur.com/tUvhifE.png", description: "来自 PsPrint 的样板，上面有链接可以开启，很适合用来制作个人名片。" },
-  { form: "acnh-passport-1", name: "動物森友會護照", preview: "https://i.imgur.com/rGRMSdy.png", description: "《集合啦！动物森友会》的护照。" },
-  { form: "acnh-postcard-1", name: "動物森友會心意卡", preview: "https://i.imgur.com/gJASJdW.png", description: "来自《集合啦！动物森友会》的心意卡。" },
-  { form: "chatbot-tw-1", name: "Chatbot 台灣開發者", preview: "https://i.imgur.com/lEKHcUY.png", description: "Chatbot Developers Taiwan 的名片。" },
+  { form: "custom-line-carousel", name: "多頁訊息 1", preview: "/templates/custom-line-carousel.webp", description: "來自 LINE 的樣板，最多 12 張卡片，很適合用來製作廣告傳單。" },
+  { form: "chatgpt-1", name: "ChatGPT 問與答", preview: "/templates/chatgpt-1.webp", description: "让你在 LINE 中模拟 ChatGPT 的问答画面，上面有开启自订链接及再次分享的按钮。" },
+  { form: "json5", name: "JSON5", preview: "/templates/json5.webp", description: "提供给有程式背景的开发者使用，可以使用 JSON5 API 来当作样板的资料来源。" },
+  { form: "psprint-592", name: "Corporate Buzz", preview: "/templates/psprint-592.webp", description: "来自 PsPrint 的样板，上面有链接可以开启，很适合用来制作个人名片。" },
+  { form: "google-sheet", name: "Google Sheet", preview: "/templates/google-sheet.webp", description: "从 Google Sheet 读取名片资料来产生名片。" },
+  { form: "csv", name: "CSV", preview: "/templates/csv.webp", description: "从 CSV 读取名片资料来产生名片。" },
+  { form: "facebook-post-link-1", name: "Facebook Post Link", preview: "/templates/facebook-post-link-1.webp", description: "让你在 LINE 中模拟 Facebook 分享链接，并且还可再次分享。" },
+  { form: "psprint-3949", name: "Right Align", preview: "/templates/psprint-3949.webp", description: "来自 PsPrint 的样板，上面有链接可以开启，很适合用来制作个人名片。" },
+  { form: "acnh-passport-1", name: "動物森友會護照", preview: "/templates/acnh-passport-1.webp", description: "《集合啦！动物森友会》的护照。" },
+  { form: "acnh-postcard-1", name: "動物森友會心意卡", preview: "/templates/acnh-postcard-1.webp", description: "来自《集合啦！动物森友会》的心意卡。" },
+  { form: "chatbot-tw-1", name: "Chatbot 台灣開發者", preview: "/templates/chatbot-tw-1.webp", description: "Chatbot Developers Taiwan 的名片。" },
 ] as const;
 
 const LEGACY_SECOND_BUTTON: CardButton = {
@@ -357,9 +357,9 @@ function TemplateCatalog({ onOpenLineCarousel, account }: { onOpenLineCarousel: 
           <p>选择一款样板，进入它自己的名片编辑表单。</p>
         </div>
         <div className="template-grid">
-          {CATALOG_TEMPLATES.map((template) => (
+          {CATALOG_TEMPLATES.map((template, index) => (
             <article className="template-card" key={template.form}>
-              <div className="template-preview"><img src={template.preview} alt={`${template.name} 样板预览`} /></div>
+              <div className="template-preview"><img src={template.preview} alt={`${template.name} 样板预览`} loading={index < 3 ? "eager" : "lazy"} decoding="async" fetchPriority={index === 0 ? "high" : "auto"} /></div>
               <div className="template-card-body">
                 <h2>{template.name}</h2>
                 <p>{template.description}</p>
@@ -426,11 +426,6 @@ export default function Home() {
       .then((data: { user?: Account | null }) => setAccount(data.user || null))
       .catch(() => setAccount(null));
   }, []);
-
-  useEffect(() => {
-    if (account) void refreshFavorites();
-    else if (account === null) setFavorites([]);
-  }, [account, refreshFavorites]);
 
   useEffect(() => {
     if (account !== null || new URLSearchParams(window.location.search).get("template") !== "custom-line-carousel") return;
@@ -671,7 +666,11 @@ export default function Home() {
         <div className="favorite-actions">
           <button className="favorite-save" type="button" disabled={savingFavorite} onClick={() => saveFavorite(false)}>{savingFavorite ? "保存中…" : activeFavoriteId ? "✓ 更新收藏" : "♡ 收藏卡片"}</button>
           {activeFavoriteId && <button type="button" disabled={savingFavorite} onClick={() => saveFavorite(true)}>＋ 另存为新收藏</button>}
-          <button type="button" aria-expanded={favoritesOpen} onClick={() => setFavoritesOpen((open) => !open)}>我的收藏 {favorites.length ? `(${favorites.length})` : ""}</button>
+          <button type="button" aria-expanded={favoritesOpen} onClick={() => {
+            const nextOpen = !favoritesOpen;
+            setFavoritesOpen(nextOpen);
+            if (nextOpen && account && !favorites.length) void refreshFavorites();
+          }}>我的收藏 {favorites.length ? `(${favorites.length})` : ""}</button>
         </div>
       </div>
 
