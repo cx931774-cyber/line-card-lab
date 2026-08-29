@@ -19,6 +19,7 @@ test("renders the public template catalog and account entry", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
   assert.match(html, /<title>LINE 卡片生成器/);
+  assert.match(html, /line-brand-icon\.png/);
   assert.match(html, /樣板列表/);
   assert.match(html, /登入 \/ 註冊|>帳戶</);
   assert.match(html, /多頁訊息 1/);

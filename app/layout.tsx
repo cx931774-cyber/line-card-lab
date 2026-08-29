@@ -4,6 +4,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "LINE 卡片生成器｜Flex Message 生成器",
   description: "視覺化編輯、即時預覽並匯出屬於你的 LINE Flex Message 輪播卡片。",
+  icons: {
+    icon: [{ url: "/line-brand-icon.png", type: "image/png" }],
+    apple: [{ url: "/line-brand-icon.png", type: "image/png" }],
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

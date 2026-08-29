@@ -70,7 +70,7 @@ export default function AdminPage() {
 
   return (
     <main className="admin-shell">
-      <header className="topbar"><a className="brand" href="/"><span className="brand-mark">L</span><span>VIP 管理後台</span></a><a className="admin-account-link" href="/account">帳戶</a></header>
+      <header className="topbar"><a className="brand" href="/"><span className="brand-mark" aria-hidden="true" /><span>VIP 管理後台</span></a><a className="admin-account-link" href="/account">帳戶</a></header>
       <section className="admin-page">
         <div className="admin-heading"><small>ADMIN</small><h1>VIP 管理後台</h1><p>設定 USDT 收款資訊，並為註冊使用者開通或取消 VIP。</p></div>
         {error && <p className="admin-alert error">{error}</p>}{message && <p className="admin-alert">{message}</p>}

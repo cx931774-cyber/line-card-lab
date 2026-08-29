@@ -345,7 +345,7 @@ function TemplateCatalog({ onOpenLineCarousel, account }: { onOpenLineCarousel: 
     <main className="site-shell catalog-shell" id="top">
       <header className="topbar catalog-topbar">
         <a className="brand" href="#top" aria-label="LINE 卡片生成器首頁">
-          <span className="brand-mark">L</span>
+          <span className="brand-mark" aria-hidden="true" />
           <span>LINE 卡片生成器</span>
         </a>
         <AccountActions account={account} />
@@ -655,7 +655,7 @@ export default function Home() {
     <main className="site-shell" id="top">
       <header className="topbar">
         <a className="brand" href="#top" aria-label="LINE 卡片生成器首頁">
-          <span className="brand-mark">L</span>
+          <span className="brand-mark" aria-hidden="true" />
           <span>LINE 卡片生成器</span>
         </a>
         <AccountActions account={account} />

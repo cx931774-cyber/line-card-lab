@@ -140,7 +140,7 @@ export default function AccountPage() {
 
   return (
     <main className="account-shell">
-      <header className="topbar"><a className="brand" href="/"><span className="brand-mark">L</span><span>LINE 卡片生成器</span></a></header>
+      <header className="topbar"><a className="brand" href="/"><span className="brand-mark" aria-hidden="true" /><span>LINE 卡片生成器</span></a></header>
       <div className="account-return"><a href="/">← 返回樣板列表</a></div>
       <section className="account-page">
         {!loading && account ? (
