@@ -11,26 +11,26 @@ const IMAGE_TYPES: Record<string, string> = {
 export async function POST(request: Request) {
   const user = await getSessionUser(request);
   if (user?.role !== "admin") {
-    return Response.json({ error: "无权上传" }, { status: 403 });
+    return Response.json({ error: "無權上傳" }, { status: 403 });
   }
 
   const formData = await request.formData();
   const file = formData.get("file");
   if (!(file instanceof File)) {
-    return Response.json({ error: "请选择 USDT 图片" }, { status: 400 });
+    return Response.json({ error: "請選擇 USDT 圖片" }, { status: 400 });
   }
 
   const extension = IMAGE_TYPES[file.type];
   if (!extension) {
-    return Response.json({ error: "仅支持 JPG、PNG 或 WebP 图片" }, { status: 415 });
+    return Response.json({ error: "僅支援 JPG、PNG 或 WebP 圖片" }, { status: 415 });
   }
   if (file.size > MAX_UPLOAD_BYTES) {
-    return Response.json({ error: "图片不能超过 2MB" }, { status: 413 });
+    return Response.json({ error: "圖片不能超過 2MB" }, { status: 413 });
   }
 
   const bucket = env.UPLOADS;
   if (!bucket) {
-    return Response.json({ error: "图片存储暂不可用" }, { status: 503 });
+    return Response.json({ error: "圖片儲存暫不可用" }, { status: 503 });
   }
 
   const key = `usdt-logo-${crypto.randomUUID()}.${extension}`;

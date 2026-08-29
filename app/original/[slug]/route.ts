@@ -24,7 +24,7 @@ export async function GET(
       /<a([^>]*):href="shortcut"([^>]*)>([\s\S]*?)<\/a>/i,
       (_match, before: string, after: string, content: string) => {
         const attributes = `${before}${after}`.replace(/\s*target="_blank"/gi, "");
-        return `<a${attributes} href="${upgradeHref}">${content.replace("建立名片", "开通 VIP 后分享")}</a>`;
+        return `<a${attributes} href="${upgradeHref}">${content.replace("建立名片", "開通 VIP 後分享")}</a>`;
       },
     );
   }
@@ -36,7 +36,7 @@ export async function GET(
     .replace(/link:"https:\/\/taichunmin\.idv\.tw\/liff-businesscard\/[^"]*"/g, 'link:"https://www.google.com"')
     .replace(/link:'https:\/\/taichunmin\.idv\.tw\/liff-businesscard\/[^']*'/g, "link:'https://www.google.com'")
     .replace("</head>", '<style>nav.navbar{background:#343a40!important}.catalog-return-wrap{max-width:1140px;margin:16px auto 0;padding:0 15px}.catalog-return-link{display:inline-block;border:1px solid #ced4da;border-radius:999px;padding:8px 13px;color:#68716d;text-decoration:none;font-size:13px;font-weight:700}.catalog-return-link:hover{color:#343a40;text-decoration:none}</style></head>')
-    .replace("</nav>", '</nav><div class="catalog-return-wrap"><a class="catalog-return-link" href="/">← 返回样板列表</a></div>');
+    .replace("</nav>", '</nav><div class="catalog-return-wrap"><a class="catalog-return-link" href="/">← 返回樣板列表</a></div>');
 
   return new Response(html, {
     headers: {

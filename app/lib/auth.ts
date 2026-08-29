@@ -17,7 +17,7 @@ const SESSION_SECONDS = 60 * 60 * 24 * 30;
 const PASSWORD_ITERATIONS = 100_000;
 
 export function database() {
-  if (!env.DB) throw new Error("数据库暂时不可用");
+  if (!env.DB) throw new Error("資料庫暫時不可用");
   return env.DB;
 }
 

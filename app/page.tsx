@@ -65,21 +65,21 @@ const COMPAT_TEMPLATE = "https://taichunmin.idv.tw/liff-businesscard/cards/line-
 
 const CATALOG_TEMPLATES = [
   { form: "custom-line-carousel", name: "多頁訊息 1", preview: "/templates/custom-line-carousel.webp", description: "來自 LINE 的樣板，最多 12 張卡片，很適合用來製作廣告傳單。" },
-  { form: "chatgpt-1", name: "ChatGPT 問與答", preview: "/templates/chatgpt-1.webp", description: "让你在 LINE 中模拟 ChatGPT 的问答画面，上面有开启自订链接及再次分享的按钮。" },
-  { form: "json5", name: "JSON5", preview: "/templates/json5.webp", description: "提供给有程式背景的开发者使用，可以使用 JSON5 API 来当作样板的资料来源。" },
-  { form: "psprint-592", name: "Corporate Buzz", preview: "/templates/psprint-592.webp", description: "来自 PsPrint 的样板，上面有链接可以开启，很适合用来制作个人名片。" },
-  { form: "google-sheet", name: "Google Sheet", preview: "/templates/google-sheet.webp", description: "从 Google Sheet 读取名片资料来产生名片。" },
-  { form: "csv", name: "CSV", preview: "/templates/csv.webp", description: "从 CSV 读取名片资料来产生名片。" },
-  { form: "facebook-post-link-1", name: "Facebook Post Link", preview: "/templates/facebook-post-link-1.webp", description: "让你在 LINE 中模拟 Facebook 分享链接，并且还可再次分享。" },
-  { form: "psprint-3949", name: "Right Align", preview: "/templates/psprint-3949.webp", description: "来自 PsPrint 的样板，上面有链接可以开启，很适合用来制作个人名片。" },
-  { form: "acnh-passport-1", name: "動物森友會護照", preview: "/templates/acnh-passport-1.webp", description: "《集合啦！动物森友会》的护照。" },
-  { form: "acnh-postcard-1", name: "動物森友會心意卡", preview: "/templates/acnh-postcard-1.webp", description: "来自《集合啦！动物森友会》的心意卡。" },
-  { form: "chatbot-tw-1", name: "Chatbot 台灣開發者", preview: "/templates/chatbot-tw-1.webp", description: "Chatbot Developers Taiwan 的名片。" },
+  { form: "chatgpt-1", name: "ChatGPT 問與答", preview: "/templates/chatgpt-1.webp", description: "讓你在 LINE 中模擬 ChatGPT 的問答畫面，上面有開啟自訂連結及再次分享的按鈕。" },
+  { form: "json5", name: "JSON5", preview: "/templates/json5.webp", description: "提供給有程式背景的開發者使用，可以使用 JSON5 API 來當作樣板的資料來源。" },
+  { form: "psprint-592", name: "Corporate Buzz", preview: "/templates/psprint-592.webp", description: "來自 PsPrint 的樣板，上面有連結可以開啟，很適合用來製作個人名片。" },
+  { form: "google-sheet", name: "Google Sheet", preview: "/templates/google-sheet.webp", description: "從 Google Sheet 讀取名片資料來產生名片。" },
+  { form: "csv", name: "CSV", preview: "/templates/csv.webp", description: "從 CSV 讀取名片資料來產生名片。" },
+  { form: "facebook-post-link-1", name: "Facebook Post Link", preview: "/templates/facebook-post-link-1.webp", description: "讓你在 LINE 中模擬 Facebook 分享連結，並且還可再次分享。" },
+  { form: "psprint-3949", name: "Right Align", preview: "/templates/psprint-3949.webp", description: "來自 PsPrint 的樣板，上面有連結可以開啟，很適合用來製作個人名片。" },
+  { form: "acnh-passport-1", name: "動物森友會護照", preview: "/templates/acnh-passport-1.webp", description: "《集合啦！動物森友會》的護照。" },
+  { form: "acnh-postcard-1", name: "動物森友會心意卡", preview: "/templates/acnh-postcard-1.webp", description: "來自《集合啦！動物森友會》的心意卡。" },
+  { form: "chatbot-tw-1", name: "Chatbot 臺灣開發者", preview: "/templates/chatbot-tw-1.webp", description: "Chatbot Developers Taiwan 的名片。" },
 ] as const;
 
 const LEGACY_SECOND_BUTTON: CardButton = {
   id: "strategy-work",
-  text: "查看服务与案例",
+  text: "檢視服務與案例",
   link: "https://example.com/work",
   color: "#167a47",
   style: "link",
@@ -109,15 +109,15 @@ const LEGACY_SECOND_CARD: CardConfig = {
   id: "web-experience",
   image: "https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=1200&q=85",
   link: "https://example.com/web",
-  title: "让网页成为品牌最好用的名片",
-  description: "兼顾叙事、转化与速度，做一套真正能长期使用的数字体验。",
+  title: "讓網頁成為品牌最好用的名片",
+  description: "兼顧敘事、轉換與速度，打造一套真正能長期使用的數位體驗。",
   backgroundColor: "#efffe8",
   titleColor: "#102117",
   descriptionColor: "#516057",
   buttons: [
     {
       id: "web-plan",
-      text: "查看网页方案",
+      text: "檢視網頁方案",
       link: "https://example.com/web-plan",
       color: "#102117",
       style: "primary",
@@ -133,7 +133,7 @@ const DEFAULT_STATE: BuilderState = {
     titleSize: "xl",
     descriptionSize: "sm",
     buttonHeight: "sm",
-    chatName: "官网邀请",
+    chatName: "官網邀請",
     liffId: "",
   },
   cards: [DEFAULT_CARD],
@@ -201,14 +201,14 @@ async function prepareImage(file: File) {
   const context = canvas.getContext("2d");
   if (!context) {
     bitmap.close();
-    throw new Error("浏览器无法处理这张图片");
+    throw new Error("瀏覽器無法處理這張圖片");
   }
   context.fillStyle = "#ffffff";
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.86));
-  if (!blob) throw new Error("图片处理失败");
+  if (!blob) throw new Error("圖片處理失敗");
   return blob;
 }
 
@@ -260,7 +260,7 @@ function textToBase64Url(value: string) {
 }
 
 async function createCompatibilityLink(state: BuilderState) {
-  if (!("CompressionStream" in window)) throw new Error("当前浏览器不支持链接压缩");
+  if (!("CompressionStream" in window)) throw new Error("目前瀏覽器不支援連結壓縮");
   const payload = JSON.stringify(sortForStableJson(toCompatibilityVcard(state)));
   const compressed = new Blob([payload])
     .stream()
@@ -273,17 +273,17 @@ async function createCompatibilityLink(state: BuilderState) {
 }
 
 function normalizeImported(raw: unknown): BuilderState {
-  if (!raw || typeof raw !== "object") throw new Error("文件内容不是有效对象");
+  if (!raw || typeof raw !== "object") throw new Error("檔案內容不是有效物件");
   const input = raw as Record<string, unknown>;
 
   if (input.settings && Array.isArray(input.cards)) {
     const imported = input as unknown as BuilderState;
-    if (!imported.cards.length) throw new Error("至少需要一张卡片");
+    if (!imported.cards.length) throw new Error("至少需要一張卡片");
     return { ...imported, version: 1 };
   }
 
   const json5 = (input.json5 || input) as Record<string, unknown>;
-  if (!Array.isArray(json5.cards)) throw new Error("没有找到可导入的卡片配置");
+  if (!Array.isArray(json5.cards)) throw new Error("沒有找到可匯入的卡片設定");
 
   const cards = (json5.cards as Array<Record<string, unknown>>).map((card, cardIndex) => ({
     id: newId(`import-card-${cardIndex + 1}`),
@@ -299,7 +299,7 @@ function normalizeImported(raw: unknown): BuilderState {
         const item = button as Record<string, unknown>;
         return {
           id: newId(`import-button-${buttonIndex + 1}`),
-          text: String(item.text || item.label || "查看详情"),
+          text: String(item.text || item.label || "檢視詳情"),
           link: String(item.link || item.uri || "https://line.me"),
           color: String(item.color || "#06c755"),
           style: (["primary", "secondary", "link"].includes(String(item.style))
@@ -326,9 +326,9 @@ function normalizeImported(raw: unknown): BuilderState {
 function AccountActions({ account }: { account: Account | null | undefined }) {
   return (
     <div className="topbar-actions">
-      {account?.role === "admin" && <a href="/admin">后台</a>}
+      {account?.role === "admin" && <a href="/admin">後台</a>}
       <a className={account?.vip ? "account-link vip" : "account-link"} href="/account">
-        {account === undefined ? "账户" : account ? (account.vip ? "VIP 账户" : "免费账户") : "登录 / 注册"}
+        {account === undefined ? "帳戶" : account ? (account.vip ? "VIP 帳戶" : "免費帳戶") : "登入 / 註冊"}
       </a>
     </div>
   );
@@ -344,7 +344,7 @@ function TemplateCatalog({ onOpenLineCarousel, account }: { onOpenLineCarousel: 
   return (
     <main className="site-shell catalog-shell" id="top">
       <header className="topbar catalog-topbar">
-        <a className="brand" href="#top" aria-label="LINE 卡片生成器首页">
+        <a className="brand" href="#top" aria-label="LINE 卡片生成器首頁">
           <span className="brand-mark">L</span>
           <span>LINE 卡片生成器</span>
         </a>
@@ -353,22 +353,22 @@ function TemplateCatalog({ onOpenLineCarousel, account }: { onOpenLineCarousel: 
       <section className="catalog-page" aria-labelledby="catalog-title">
         <div className="catalog-heading">
           <span>LINE FLEX MESSAGE</span>
-          <h1 id="catalog-title">样板列表</h1>
-          <p>选择一款样板，进入它自己的名片编辑表单。</p>
+          <h1 id="catalog-title">樣板列表</h1>
+          <p>選擇一款樣板，進入它自己的名片編輯表單。</p>
         </div>
         <div className="template-grid">
           {CATALOG_TEMPLATES.map((template, index) => (
             <article className="template-card" key={template.form}>
-              <div className="template-preview"><img src={template.preview} alt={`${template.name} 样板预览`} loading={index < 3 ? "eager" : "lazy"} decoding="async" fetchPriority={index === 0 ? "high" : "auto"} /></div>
+              <div className="template-preview"><img src={template.preview} alt={`${template.name} 樣板預覽`} loading={index < 3 ? "eager" : "lazy"} decoding="async" fetchPriority={index === 0 ? "high" : "auto"} /></div>
               <div className="template-card-body">
                 <h2>{template.name}</h2>
                 <p>{template.description}</p>
                 {template.form === "custom-line-carousel" ? (
-                  <button type="button" onClick={() => account ? onOpenLineCarousel() : promptLogin("/?template=custom-line-carousel")}>▣&nbsp; 点击建立名片</button>
+                  <button type="button" onClick={() => account ? onOpenLineCarousel() : promptLogin("/?template=custom-line-carousel")}>▣&nbsp; 點擊建立名片</button>
                 ) : account ? (
-                  <a href={`/original/${template.form}`}>▣&nbsp; 点击建立名片</a>
+                  <a href={`/original/${template.form}`}>▣&nbsp; 點擊建立名片</a>
                 ) : (
-                  <button type="button" onClick={() => promptLogin(`/original/${template.form}`)}>▣&nbsp; 点击建立名片</button>
+                  <button type="button" onClick={() => promptLogin(`/original/${template.form}`)}>▣&nbsp; 點擊建立名片</button>
                 )}
               </div>
             </article>
@@ -376,8 +376,8 @@ function TemplateCatalog({ onOpenLineCarousel, account }: { onOpenLineCarousel: 
         </div>
       </section>
       <div className={`login-entry-prompt ${loginTarget ? "show" : ""}`} role="status" aria-live="polite">
-        <span>请先登录</span>
-        {loginTarget && <a href={`/account?returnTo=${encodeURIComponent(loginTarget)}`}>登录 / 注册</a>}
+        <span>請先登入</span>
+        {loginTarget && <a href={`/account?returnTo=${encodeURIComponent(loginTarget)}`}>登入 / 註冊</a>}
       </div>
     </main>
   );
@@ -437,7 +437,7 @@ export default function Home() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const normalized = migrateLegacyDefault(normalizeImported(JSON.parse(saved)));
-        normalized.settings.chatName = normalized.settings.chatName || "官网邀请";
+        normalized.settings.chatName = normalized.settings.chatName || "官網邀請";
         // eslint-disable-next-line react-hooks/set-state-in-effect -- restore the local draft after mount
         setBuilder(normalized);
         setActiveCardId(normalized.cards[0].id);
@@ -484,12 +484,12 @@ export default function Home() {
         body: JSON.stringify({ name: builder.cards[0]?.title || "未命名卡片", state: builder }),
       });
       const data = await response.json() as { favorite?: FavoriteSummary; error?: string };
-      if (!response.ok || !data.favorite) throw new Error(data.error || "收藏失败");
+      if (!response.ok || !data.favorite) throw new Error(data.error || "收藏失敗");
       setActiveFavoriteId(data.favorite.id);
       await refreshFavorites();
       notify(favoriteId ? "收藏已更新" : "卡片已收藏");
     } catch (error) {
-      notify(error instanceof Error ? error.message : "收藏失败");
+      notify(error instanceof Error ? error.message : "收藏失敗");
     } finally {
       setSavingFavorite(false);
     }
@@ -499,29 +499,29 @@ export default function Home() {
     try {
       const response = await fetch(`/api/favorites/${favoriteId}`, { cache: "no-store" });
       const data = await response.json() as { favorite?: { state?: unknown }; error?: string };
-      if (!response.ok || !data.favorite?.state) throw new Error(data.error || "读取收藏失败");
+      if (!response.ok || !data.favorite?.state) throw new Error(data.error || "讀取收藏失敗");
       const restored = normalizeImported(data.favorite.state);
       setBuilder(restored);
       setActiveCardId(restored.cards[0].id);
       setActiveFavoriteId(favoriteId);
       setFavoritesOpen(false);
-      notify("已恢复收藏，可继续编辑");
+      notify("已恢復收藏，可繼續編輯");
     } catch (error) {
-      notify(error instanceof Error ? error.message : "读取收藏失败");
+      notify(error instanceof Error ? error.message : "讀取收藏失敗");
     }
   };
 
   const deleteFavorite = async (favorite: FavoriteSummary) => {
-    if (!window.confirm(`确定删除收藏“${favorite.name}”吗？`)) return;
+    if (!window.confirm(`確定刪除收藏“${favorite.name}”嗎？`)) return;
     try {
       const response = await fetch(`/api/favorites/${favorite.id}`, { method: "DELETE" });
       const data = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(data.error || "删除失败");
+      if (!response.ok) throw new Error(data.error || "刪除失敗");
       if (activeFavoriteId === favorite.id) setActiveFavoriteId(null);
       setFavorites((current) => current.filter((item) => item.id !== favorite.id));
-      notify("收藏已删除");
+      notify("收藏已刪除");
     } catch (error) {
-      notify(error instanceof Error ? error.message : "删除失败");
+      notify(error instanceof Error ? error.message : "刪除失敗");
     }
   };
 
@@ -547,8 +547,8 @@ export default function Home() {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
-    if (!file.type.startsWith("image/")) return notify("请选择图片文件");
-    if (file.size > 10 * 1024 * 1024) return notify("图片不能超过 10MB");
+    if (!file.type.startsWith("image/")) return notify("請選擇圖片檔案");
+    if (file.size > 10 * 1024 * 1024) return notify("圖片不能超過 10MB");
 
     setUploadingImage(true);
     try {
@@ -557,12 +557,12 @@ export default function Home() {
       formData.append("file", image, "card-image.jpg");
       const response = await fetch("/api/images", { method: "POST", body: formData });
       const result = await response.json() as { url?: string; error?: string };
-      if (!response.ok || !result.url) throw new Error(result.error || "图片上传失败");
+      if (!response.ok || !result.url) throw new Error(result.error || "圖片上傳失敗");
       updateCard("imageBackgroundColor", "");
       updateCard("image", result.url);
-      notify("图片已上传");
+      notify("圖片已上傳");
     } catch (error) {
-      notify(error instanceof Error ? error.message : "图片上传失败");
+      notify(error instanceof Error ? error.message : "圖片上傳失敗");
     } finally {
       setUploadingImage(false);
     }
@@ -601,8 +601,8 @@ export default function Home() {
   };
 
   const removeCard = () => {
-    if (builder.cards.length === 1) return notify("至少保留一张卡片");
-    if (!window.confirm(`确定删除第 ${activeIndex + 1} 张卡片吗？`)) return;
+    if (builder.cards.length === 1) return notify("至少保留一張卡片");
+    if (!window.confirm(`確定刪除第 ${activeIndex + 1} 張卡片嗎？`)) return;
     const nextCards = builder.cards.filter((card) => card.id !== activeCard.id);
     setBuilder((current) => ({ ...current, cards: nextCards }));
     setActiveCardId(nextCards[Math.min(activeIndex, nextCards.length - 1)].id);
@@ -654,7 +654,7 @@ export default function Home() {
   return (
     <main className="site-shell" id="top">
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="LINE 卡片生成器首页">
+        <a className="brand" href="#top" aria-label="LINE 卡片生成器首頁">
           <span className="brand-mark">L</span>
           <span>LINE 卡片生成器</span>
         </a>
@@ -662,10 +662,10 @@ export default function Home() {
       </header>
 
       <div className="editor-return-row">
-        <button className="catalog-back" type="button" onClick={openCatalog}>← 返回样板列表</button>
+        <button className="catalog-back" type="button" onClick={openCatalog}>← 返回樣板列表</button>
         <div className="favorite-actions">
-          <button className="favorite-save" type="button" disabled={savingFavorite} onClick={() => saveFavorite(false)}>{savingFavorite ? "保存中…" : activeFavoriteId ? "✓ 更新收藏" : "♡ 收藏卡片"}</button>
-          {activeFavoriteId && <button type="button" disabled={savingFavorite} onClick={() => saveFavorite(true)}>＋ 另存为新收藏</button>}
+          <button className="favorite-save" type="button" disabled={savingFavorite} onClick={() => saveFavorite(false)}>{savingFavorite ? "儲存中…" : activeFavoriteId ? "✓ 更新收藏" : "♡ 收藏卡片"}</button>
+          {activeFavoriteId && <button type="button" disabled={savingFavorite} onClick={() => saveFavorite(true)}>＋ 另存為新收藏</button>}
           <button type="button" aria-expanded={favoritesOpen} onClick={() => {
             const nextOpen = !favoritesOpen;
             setFavoritesOpen(nextOpen);
@@ -676,25 +676,25 @@ export default function Home() {
 
       {favoritesOpen && (
         <section className="favorites-panel" aria-label="我的卡片收藏">
-          <div className="favorites-heading"><div><small>SAVED CARDS</small><h2>我的收藏</h2></div><button type="button" aria-label="关闭我的收藏" onClick={() => setFavoritesOpen(false)}>×</button></div>
-          {favoritesLoading ? <p className="favorites-empty">正在读取收藏…</p> : favorites.length ? (
+          <div className="favorites-heading"><div><small>SAVED CARDS</small><h2>我的收藏</h2></div><button type="button" aria-label="關閉我的收藏" onClick={() => setFavoritesOpen(false)}>×</button></div>
+          {favoritesLoading ? <p className="favorites-empty">正在讀取收藏…</p> : favorites.length ? (
             <div className="favorites-grid">
               {favorites.map((favorite) => (
                 <article className={favorite.id === activeFavoriteId ? "favorite-item active" : "favorite-item"} key={favorite.id}>
                   <div className="favorite-thumb">{favorite.previewImage ? <img src={favorite.previewImage} alt="" /> : <span>LINE</span>}</div>
-                  <div className="favorite-meta"><strong>{favorite.name}</strong><span>{new Date(favorite.updatedAt * 1000).toLocaleDateString("zh-CN")} 更新</span></div>
-                  <div className="favorite-item-actions"><button type="button" onClick={() => loadFavorite(favorite.id)}>继续编辑</button><button className="favorite-delete" type="button" onClick={() => deleteFavorite(favorite)}>删除</button></div>
+                  <div className="favorite-meta"><strong>{favorite.name}</strong><span>{new Date(favorite.updatedAt * 1000).toLocaleDateString("zh-TW")} 更新</span></div>
+                  <div className="favorite-item-actions"><button type="button" onClick={() => loadFavorite(favorite.id)}>繼續編輯</button><button className="favorite-delete" type="button" onClick={() => deleteFavorite(favorite)}>刪除</button></div>
                 </article>
               ))}
             </div>
-          ) : <p className="favorites-empty">还没有收藏。编辑完成后点击“收藏卡片”即可保存。</p>}
+          ) : <p className="favorites-empty">還沒有收藏。編輯完成後點擊「收藏卡片」即可儲存。</p>}
         </section>
       )}
 
-      <section className="workspace" aria-label="卡片编辑工作区">
+      <section className="workspace" aria-label="卡片編輯工作區">
         <div className="editor-panel">
           <div className="panel-heading">
-            <div><span className="step">01</span><h2>编辑卡片</h2></div>
+            <div><span className="step">01</span><h2>編輯卡片</h2></div>
           </div>
 
           <div className="card-tabs" aria-label="卡片列表">
@@ -712,15 +712,15 @@ export default function Home() {
 
           <section className="editor-section compact-section">
             <button className="section-toggle" type="button" aria-expanded={settingsOpen} onClick={() => setSettingsOpen((open) => !open)}>
-              <span><small>GLOBAL</small> 全局设置</span><b>{settingsOpen ? "−" : "+"}</b>
+              <span><small>GLOBAL</small> 全域設定</span><b>{settingsOpen ? "−" : "+"}</b>
             </button>
             {settingsOpen && (
               <div className="section-content settings-grid">
-                <label htmlFor="ratio"><span>图片比例</span><input id="ratio" value={builder.settings.ratio} onChange={(event) => updateSettings("ratio", event.target.value)} placeholder="20:13" /></label>
-                <label htmlFor="chat-name"><span>预览聊天名称</span><input id="chat-name" value={builder.settings.chatName} onChange={(event) => updateSettings("chatName", event.target.value)} /></label>
-                <label htmlFor="title-size"><span>标题字号</span><select id="title-size" value={builder.settings.titleSize} onChange={(event) => updateSettings("titleSize", event.target.value as FontSize)}>{FONT_SIZES.map((size) => <option key={size}>{size}</option>)}</select></label>
-                <label htmlFor="desc-size"><span>说明字号</span><select id="desc-size" value={builder.settings.descriptionSize} onChange={(event) => updateSettings("descriptionSize", event.target.value as FontSize)}>{FONT_SIZES.map((size) => <option key={size}>{size}</option>)}</select></label>
-                <label htmlFor="button-height"><span>按钮高度</span><select id="button-height" value={builder.settings.buttonHeight} onChange={(event) => updateSettings("buttonHeight", event.target.value as "sm" | "md")}><option value="sm">sm</option><option value="md">md</option></select></label>
+                <label htmlFor="ratio"><span>圖片比例</span><input id="ratio" value={builder.settings.ratio} onChange={(event) => updateSettings("ratio", event.target.value)} placeholder="20:13" /></label>
+                <label htmlFor="chat-name"><span>預覽聊天名稱</span><input id="chat-name" value={builder.settings.chatName} onChange={(event) => updateSettings("chatName", event.target.value)} /></label>
+                <label htmlFor="title-size"><span>標題字號</span><select id="title-size" value={builder.settings.titleSize} onChange={(event) => updateSettings("titleSize", event.target.value as FontSize)}>{FONT_SIZES.map((size) => <option key={size}>{size}</option>)}</select></label>
+                <label htmlFor="desc-size"><span>說明字號</span><select id="desc-size" value={builder.settings.descriptionSize} onChange={(event) => updateSettings("descriptionSize", event.target.value as FontSize)}>{FONT_SIZES.map((size) => <option key={size}>{size}</option>)}</select></label>
+                <label htmlFor="button-height"><span>按鈕高度</span><select id="button-height" value={builder.settings.buttonHeight} onChange={(event) => updateSettings("buttonHeight", event.target.value as "sm" | "md")}><option value="sm">sm</option><option value="md">md</option></select></label>
               </div>
             )}
           </section>
@@ -730,35 +730,35 @@ export default function Home() {
               <div><small>CARD {String(activeIndex + 1).padStart(2, "0")}</small><strong>{activeCard.title || "未命名卡片"}</strong></div>
               <div className="icon-actions">
                 <button type="button" onClick={() => moveCard(-1)} disabled={activeIndex === 0} aria-label="卡片前移">←</button>
-                <button type="button" onClick={() => moveCard(1)} disabled={activeIndex === builder.cards.length - 1} aria-label="卡片后移">→</button>
-                <button className="danger" type="button" onClick={removeCard} aria-label="删除卡片">×</button>
+                <button type="button" onClick={() => moveCard(1)} disabled={activeIndex === builder.cards.length - 1} aria-label="卡片後移">→</button>
+                <button className="danger" type="button" onClick={removeCard} aria-label="刪除卡片">×</button>
               </div>
             </div>
 
             <div className="section-content form-stack">
-              <label htmlFor="card-title"><span>主标题</span><input id="card-title" value={activeCard.title} onChange={(event) => updateCard("title", event.target.value)} /></label>
-              <label htmlFor="card-description"><span>说明文字</span><textarea id="card-description" rows={3} value={activeCard.description} onChange={(event) => updateCard("description", event.target.value)} /></label>
+              <label htmlFor="card-title"><span>主標題</span><input id="card-title" value={activeCard.title} onChange={(event) => updateCard("title", event.target.value)} /></label>
+              <label htmlFor="card-description"><span>說明文字</span><textarea id="card-description" rows={3} value={activeCard.description} onChange={(event) => updateCard("description", event.target.value)} /></label>
               <div className="image-upload-field">
-                <span className="field-label">卡片图片</span>
+                <span className="field-label">卡片圖片</span>
                 <input ref={imageInputRef} className="image-file-input" id="card-image" type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadImage} />
-                <div className="image-source-options" role="radiogroup" aria-label="图片输入方式">
-                  <label><input type="radio" name="image-source" value="upload" checked={imageSourceMode === "upload"} onChange={() => setImageSourceMode("upload")} /><span>上传图片</span></label>
-                  <label><input type="radio" name="image-source" value="url" checked={imageSourceMode === "url"} onChange={() => setImageSourceMode("url")} /><span>输入链接</span></label>
+                <div className="image-source-options" role="radiogroup" aria-label="圖片輸入方式">
+                  <label><input type="radio" name="image-source" value="upload" checked={imageSourceMode === "upload"} onChange={() => setImageSourceMode("upload")} /><span>上傳圖片</span></label>
+                  <label><input type="radio" name="image-source" value="url" checked={imageSourceMode === "url"} onChange={() => setImageSourceMode("url")} /><span>輸入連結</span></label>
                 </div>
                 {imageSourceMode === "upload" ? (
                   <div className="image-upload-control">
                     <div className="image-upload-thumb">
-                      {activeCard.image ? <img key={activeCard.image} src={activeCard.image} alt="当前卡片图片" /> : <span>暂无图片</span>}
+                      {activeCard.image ? <img key={activeCard.image} src={activeCard.image} alt="目前卡片圖片" /> : <span>暫無圖片</span>}
                     </div>
                     <div className="image-upload-actions">
-                      <button type="button" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage}>{uploadingImage ? "上传中…" : activeCard.image ? "更换图片" : "选择图片"}</button>
+                      <button type="button" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage}>{uploadingImage ? "上傳中…" : activeCard.image ? "更換圖片" : "選擇圖片"}</button>
                       {activeCard.image && <button className="remove-image" type="button" onClick={() => updateCard("image", "")} disabled={uploadingImage}>移除</button>}
-                      <small>支持 JPG、PNG、WebP，最大 10MB</small>
+                      <small>支援 JPG、PNG、WebP，最大 10MB</small>
                     </div>
                   </div>
                 ) : (
                   <label className="image-url-input" htmlFor="card-image-url">
-                    <span>图片链接（HTTPS）</span>
+                    <span>圖片連結（HTTPS）</span>
                     <input id="card-image-url" type="url" value={activeCard.image} onChange={(event) => {
                       updateCard("imageBackgroundColor", "");
                       updateCard("image", event.target.value);
@@ -769,8 +769,8 @@ export default function Home() {
               <div className="color-grid">
                 {([
                   ["backgroundColor", "卡片底色"],
-                  ["titleColor", "标题颜色"],
-                  ["descriptionColor", "说明颜色"],
+                  ["titleColor", "標題顏色"],
+                  ["descriptionColor", "說明顏色"],
                 ] as Array<["backgroundColor" | "titleColor" | "descriptionColor", string]>).map(([key, label]) => (
                   <label key={key} htmlFor={`color-${key}`}><span>{label}</span><span className="color-control"><input id={`color-${key}`} type="color" value={activeCard[key]} onChange={(event) => updateCard(key, event.target.value)} /><code>{activeCard[key]}</code></span></label>
                 ))}
@@ -779,24 +779,24 @@ export default function Home() {
           </section>
 
           <section className="editor-section">
-            <div className="subsection-heading"><div><small>ACTIONS</small><h3>卡片按钮</h3></div><button type="button" onClick={addButton}>＋ 新增按钮</button></div>
+            <div className="subsection-heading"><div><small>ACTIONS</small><h3>卡片按鈕</h3></div><button type="button" onClick={addButton}>＋ 新增按鈕</button></div>
             <div className="button-list">
-              {activeCard.buttons.length === 0 && <p className="empty-note">这张卡片还没有按钮。</p>}
+              {activeCard.buttons.length === 0 && <p className="empty-note">這張卡片還沒有按鈕。</p>}
               {activeCard.buttons.map((button, index) => (
                 <div className="button-editor" key={button.id}>
                   <div className="button-editor-head">
-                    <span>按钮 {index + 1}</span>
+                    <span>按鈕 {index + 1}</span>
                     <div>
                       <button type="button" onClick={() => moveButton(button.id, -1)} disabled={index === 0}>上移</button>
                       <button type="button" onClick={() => moveButton(button.id, 1)} disabled={index === activeCard.buttons.length - 1}>下移</button>
-                      <button className="delete-button" type="button" onClick={() => removeButton(button.id)}>删除</button>
+                      <button className="delete-button" type="button" onClick={() => removeButton(button.id)}>刪除</button>
                     </div>
                   </div>
-                  <label htmlFor={`button-text-${button.id}`}><span>按钮文字</span><input id={`button-text-${button.id}`} value={button.text} onChange={(event) => updateButton(button.id, "text", event.target.value)} /></label>
-                  <label htmlFor={`button-link-${button.id}`}><span>目标网址</span><input id={`button-link-${button.id}`} value={button.link} onChange={(event) => updateButton(button.id, "link", event.target.value)} /></label>
+                  <label htmlFor={`button-text-${button.id}`}><span>按鈕文字</span><input id={`button-text-${button.id}`} value={button.text} onChange={(event) => updateButton(button.id, "text", event.target.value)} /></label>
+                  <label htmlFor={`button-link-${button.id}`}><span>目標網址</span><input id={`button-link-${button.id}`} value={button.link} onChange={(event) => updateButton(button.id, "link", event.target.value)} /></label>
                   <div className="button-options">
-                    <label htmlFor={`button-style-${button.id}`}><span>样式</span><select id={`button-style-${button.id}`} value={button.style} onChange={(event) => updateButton(button.id, "style", event.target.value as ButtonStyle)}><option value="primary">主按钮</option><option value="secondary">次按钮</option><option value="link">文字链接</option></select></label>
-                    <label htmlFor={`button-color-${button.id}`}><span>颜色</span><span className="color-control"><input id={`button-color-${button.id}`} type="color" value={button.color} onChange={(event) => updateButton(button.id, "color", event.target.value)} /><code>{button.color}</code></span></label>
+                    <label htmlFor={`button-style-${button.id}`}><span>樣式</span><select id={`button-style-${button.id}`} value={button.style} onChange={(event) => updateButton(button.id, "style", event.target.value as ButtonStyle)}><option value="primary">主按鈕</option><option value="secondary">次按鈕</option><option value="link">文字連結</option></select></label>
+                    <label htmlFor={`button-color-${button.id}`}><span>顏色</span><span className="color-control"><input id={`button-color-${button.id}`} type="color" value={button.color} onChange={(event) => updateButton(button.id, "color", event.target.value)} /><code>{button.color}</code></span></label>
                   </div>
                 </div>
               ))}
@@ -811,7 +811,7 @@ export default function Home() {
               rel={account?.vip ? "noreferrer" : undefined}
               aria-disabled={account?.vip ? !compatibilityLink : false}
             >
-              <span><small>LINE</small>{account === undefined ? "读取账户…" : account.vip ? (compatibilityLink ? "分享卡片" : "正在准备卡片…") : "开通 VIP 后分享"}</span><b>↗</b>
+              <span><small>LINE</small>{account === undefined ? "讀取帳戶…" : account.vip ? (compatibilityLink ? "分享卡片" : "正在準備卡片…") : "開通 VIP 後分享"}</span><b>↗</b>
             </a>
           </section>
 
@@ -820,8 +820,8 @@ export default function Home() {
         <aside className="preview-panel">
           <div className="preview-sticky">
             <div className="panel-heading inverse">
-              <div><span className="step">02</span><h2>LINE 实时预览</h2></div>
-              <span className="card-count">输入即更新 · {activeIndex + 1} / {builder.cards.length}</span>
+              <div><span className="step">02</span><h2>LINE 即時預覽</h2></div>
+              <span className="card-count">輸入即更新 · {activeIndex + 1} / {builder.cards.length}</span>
             </div>
 
             <div className="phone-stage">
@@ -854,8 +854,8 @@ export default function Home() {
                     </div>
                   </div>
                 </article>
-                <div className="pager-dots" aria-label="选择预览卡片">
-                  {builder.cards.map((card) => <button key={card.id} type="button" className={card.id === activeCard.id ? "active" : ""} onClick={() => setActiveCardId(card.id)} aria-label={`预览第 ${builder.cards.indexOf(card) + 1} 张卡片`} />)}
+                <div className="pager-dots" aria-label="選擇預覽卡片">
+                  {builder.cards.map((card) => <button key={card.id} type="button" className={card.id === activeCard.id ? "active" : ""} onClick={() => setActiveCardId(card.id)} aria-label={`預覽第 ${builder.cards.indexOf(card) + 1} 張卡片`} />)}
                 </div>
               </div>
             </div>

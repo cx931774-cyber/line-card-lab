@@ -4,8 +4,8 @@ export async function POST(request: Request) {
   const input = await safeJson(request);
   const identifier = normalizeIdentifier(String(input.identifier || input.email || ""));
   const password = String(input.password || "");
-  if (!validIdentifier(identifier)) return Response.json({ error: "请输入有效的用户名或邮箱；用户名需为 3–32 个字符" }, { status: 400 });
-  if (password.length < 8 || password.length > 128) return Response.json({ error: "密码需要 8–128 个字符" }, { status: 400 });
+  if (!validIdentifier(identifier)) return Response.json({ error: "請輸入有效的使用者名稱或電子郵件；使用者名稱需為 3–32 個字元" }, { status: 400 });
+  if (password.length < 8 || password.length > 128) return Response.json({ error: "密碼需要 8–128 個字元" }, { status: 400 });
 
   const id = crypto.randomUUID();
   const now = Math.floor(Date.now() / 1000);
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       VALUES (?, ?, ?, ?, ?, 'user', 'free', ?, ?)
     `).bind(id, identifier, identifierDisplayName(identifier), hash, salt, now, now).run();
   } catch {
-    return Response.json({ error: "此用户名或邮箱已经注册" }, { status: 409 });
+    return Response.json({ error: "此使用者名稱或電子郵件已經註冊" }, { status: 409 });
   }
 
   const token = await createSession(id);

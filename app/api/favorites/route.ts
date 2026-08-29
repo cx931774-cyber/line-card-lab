@@ -3,7 +3,7 @@ import { favoritePayload } from "./helpers";
 
 export async function GET(request: Request) {
   const user = await getSessionUser(request);
-  if (!user) return Response.json({ error: "请先登录" }, { status: 401 });
+  if (!user) return Response.json({ error: "請先登入" }, { status: 401 });
 
   const result = await database().prepare(`
     SELECT id, name, preview_image AS previewImage, created_at AS createdAt, updated_at AS updatedAt
@@ -17,20 +17,20 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const user = await getSessionUser(request);
-  if (!user) return Response.json({ error: "请先登录" }, { status: 401 });
+  if (!user) return Response.json({ error: "請先登入" }, { status: 401 });
 
   const input = await safeJson(request);
   let payload: ReturnType<typeof favoritePayload>;
   try {
     payload = favoritePayload(input);
   } catch (error) {
-    return Response.json({ error: error instanceof Error ? error.message : "卡片内容无效" }, { status: 400 });
+    return Response.json({ error: error instanceof Error ? error.message : "卡片內容無效" }, { status: 400 });
   }
 
   const count = await database().prepare("SELECT COUNT(*) AS count FROM card_favorites WHERE user_id = ?")
     .bind(user.id).first<{ count: number }>();
   if (Number(count?.count || 0) >= 100) {
-    return Response.json({ error: "每个账号最多收藏 100 个卡片" }, { status: 409 });
+    return Response.json({ error: "每個帳號最多收藏 100 個卡片" }, { status: 409 });
   }
 
   const id = crypto.randomUUID();

@@ -19,8 +19,8 @@ test("renders the public template catalog and account entry", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
   assert.match(html, /<title>LINE 卡片生成器/);
-  assert.match(html, /样板列表/);
-  assert.match(html, /登录 \/ 注册|>账户</);
+  assert.match(html, /樣板列表/);
+  assert.match(html, /登入 \/ 註冊|>帳戶</);
   assert.match(html, /多頁訊息 1/);
   assert.equal((html.match(/class="template-card"/g) || []).length, 11);
 });
@@ -29,17 +29,17 @@ test("hides VIP pricing before login", async () => {
   const response = await render("/account");
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.doesNotMatch(html, /VIP ACCESS|账户与 VIP/);
+  assert.doesNotMatch(html, /VIP ACCESS|帳戶與 VIP/);
   assert.doesNotMatch(html, /月度 VIP|年度 VIP|永久 VIP/);
   assert.doesNotMatch(html, />USD<|19\.9 USDT|89 USDT|299 USDT/);
 });
 
 test("supports username or email authentication and transaction hash submission", async () => {
   const source = await readFile(new URL("../app/account/page.tsx", import.meta.url), "utf8");
-  assert.match(source, /用户名或邮箱/);
-  assert.match(source, /交易哈希值/);
+  assert.match(source, /使用者名稱或電子郵件/);
+  assert.match(source, /交易雜湊值/);
   assert.match(source, /我已充值/);
-  assert.match(source, /USDT 充值二维码/);
+  assert.match(source, /USDT 充值二維碼/);
 });
 
 test("uses optimized local catalog previews", async () => {
@@ -60,8 +60,8 @@ test("renders USDT payment settings in the admin shell", async () => {
   const response = await render("/admin");
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /USDT 收款设置/);
-  assert.match(html, /链网络/);
-  assert.match(html, /充值记录/);
-  assert.doesNotMatch(html, /跳转到这个地址/);
+  assert.match(html, /USDT 收款設定/);
+  assert.match(html, /鏈網路/);
+  assert.match(html, /充值記錄/);
+  assert.doesNotMatch(html, /跳轉到這個地址/);
 });

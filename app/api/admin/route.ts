@@ -6,7 +6,7 @@ async function requireAdmin(request: Request) {
 }
 
 export async function GET(request: Request) {
-  if (!(await requireAdmin(request))) return Response.json({ error: "无权访问" }, { status: 403 });
+  if (!(await requireAdmin(request))) return Response.json({ error: "無權存取" }, { status: 403 });
   const db = database();
   const [result, payments, payment] = await Promise.all([
     db.prepare(`
@@ -28,17 +28,17 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  if (!(await requireAdmin(request))) return Response.json({ error: "无权访问" }, { status: 403 });
+  if (!(await requireAdmin(request))) return Response.json({ error: "無權存取" }, { status: 403 });
   const input = await safeJson(request);
   const now = Math.floor(Date.now() / 1000);
 
   if (input.usdtAddress !== undefined || input.usdtNetwork !== undefined) {
     const usdtAddress = String(input.usdtAddress || "").trim();
     const usdtNetwork = String(input.usdtNetwork || "").trim();
-    if (!usdtAddress) return Response.json({ error: "请输入 USDT 收款地址" }, { status: 400 });
-    if (!usdtNetwork) return Response.json({ error: "请输入 USDT 链网络" }, { status: 400 });
+    if (!usdtAddress) return Response.json({ error: "請輸入 USDT 收款地址" }, { status: 400 });
+    if (!usdtNetwork) return Response.json({ error: "請輸入 USDT 鏈網路" }, { status: 400 });
     if (usdtAddress.length > 200 || usdtNetwork.length > 40) {
-      return Response.json({ error: "充值信息长度超出限制" }, { status: 400 });
+      return Response.json({ error: "充值資訊長度超出限制" }, { status: 400 });
     }
     const db = database();
     await db.batch([
@@ -57,7 +57,7 @@ export async function PATCH(request: Request) {
   const userId = String(input.userId || "");
   const plan = String(input.plan || "") as Plan;
   if (!userId || !["free", "monthly", "annual", "lifetime"].includes(plan)) {
-    return Response.json({ error: "用户或套餐无效" }, { status: 400 });
+    return Response.json({ error: "使用者或套餐無效" }, { status: 400 });
   }
   const expiresAt = plan === "monthly" ? now + 30 * 86400 : plan === "annual" ? now + 365 * 86400 : null;
   await database().prepare("UPDATE users SET plan = ?, vip_expires_at = ?, updated_at = ? WHERE id = ? AND role != 'admin'")

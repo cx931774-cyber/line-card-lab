@@ -5,7 +5,7 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 export async function GET(request: Request, context: RouteContext) {
   const user = await getSessionUser(request);
-  if (!user) return Response.json({ error: "请先登录" }, { status: 401 });
+  if (!user) return Response.json({ error: "請先登入" }, { status: 401 });
   const { id } = await context.params;
   const row = await database().prepare(`
     SELECT id, name, state_json AS stateJson, preview_image AS previewImage,
@@ -18,14 +18,14 @@ export async function GET(request: Request, context: RouteContext) {
 
 export async function PATCH(request: Request, context: RouteContext) {
   const user = await getSessionUser(request);
-  if (!user) return Response.json({ error: "请先登录" }, { status: 401 });
+  if (!user) return Response.json({ error: "請先登入" }, { status: 401 });
   const { id } = await context.params;
   const input = await safeJson(request);
   let payload: ReturnType<typeof favoritePayload>;
   try {
     payload = favoritePayload(input);
   } catch (error) {
-    return Response.json({ error: error instanceof Error ? error.message : "卡片内容无效" }, { status: 400 });
+    return Response.json({ error: error instanceof Error ? error.message : "卡片內容無效" }, { status: 400 });
   }
 
   const now = Math.floor(Date.now() / 1000);
@@ -40,7 +40,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
 export async function DELETE(request: Request, context: RouteContext) {
   const user = await getSessionUser(request);
-  if (!user) return Response.json({ error: "请先登录" }, { status: 401 });
+  if (!user) return Response.json({ error: "請先登入" }, { status: 401 });
   const { id } = await context.params;
   const result = await database().prepare("DELETE FROM card_favorites WHERE id = ? AND user_id = ?")
     .bind(id, user.id).run();
