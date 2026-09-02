@@ -8,10 +8,15 @@ async function requireAdmin(request: Request) {
 export async function GET(request: Request) {
   if (!(await requireAdmin(request))) return Response.json({ error: "無權存取" }, { status: 403 });
   const db = database();
-  const [result, payments, payment] = await Promise.all([
+  const [result, payments, generations, payment] = await Promise.all([
     db.prepare(`
       SELECT id, email AS identifier, display_name AS displayName, role, plan,
-             vip_expires_at AS vipExpiresAt, created_at AS createdAt
+             vip_expires_at AS vipExpiresAt, created_at AS createdAt,
+             COALESCE((
+               SELECT COUNT(*) FROM generation_events g
+               WHERE g.user_id = users.id AND g.access_type = 'free' AND g.status = 'allowed'
+             ), 0) AS freeGenerationsUsed,
+             (SELECT MAX(g.created_at) FROM generation_events g WHERE g.user_id = users.id) AS lastGenerationAt
       FROM users ORDER BY created_at DESC LIMIT 500
     `).all(),
     db.prepare(`
@@ -22,9 +27,17 @@ export async function GET(request: Request) {
       JOIN users u ON u.id = p.user_id
       ORDER BY p.created_at DESC LIMIT 500
     `).all(),
+    db.prepare(`
+      SELECT g.id, g.user_id AS userId, g.template, g.access_type AS accessType,
+             g.status, g.plan, g.created_at AS createdAt,
+             u.email AS identifier, u.display_name AS displayName
+      FROM generation_events g
+      JOIN users u ON u.id = g.user_id
+      ORDER BY g.created_at DESC LIMIT 500
+    `).all(),
     paymentDetails(),
   ]);
-  return Response.json({ users: result.results, payments: payments.results, ...payment });
+  return Response.json({ users: result.results, payments: payments.results, generations: generations.results, ...payment });
 }
 
 export async function PATCH(request: Request) {

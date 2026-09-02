@@ -10,6 +10,8 @@ export type SessionUser = {
   plan: Plan;
   vipExpiresAt: number | null;
   vip: boolean;
+  freeGenerationsUsed: number;
+  freeGenerationsRemaining: number | null;
 };
 
 const SESSION_COOKIE = "line_card_session";
@@ -113,14 +115,26 @@ export async function getSessionUser(request: Request): Promise<SessionUser | nu
   const now = Math.floor(Date.now() / 1000);
   const row = await database().prepare(`
     SELECT u.id, u.email AS identifier, u.display_name AS displayName, u.role, u.plan,
-           u.vip_expires_at AS vipExpiresAt
+           u.vip_expires_at AS vipExpiresAt,
+           COALESCE((
+             SELECT COUNT(*) FROM generation_events g
+             WHERE g.user_id = u.id AND g.access_type = 'free' AND g.status = 'allowed'
+           ), 0) AS freeGenerationsUsed
     FROM sessions s
     JOIN users u ON u.id = s.user_id
     WHERE s.token_hash = ? AND s.expires_at > ?
-  `).bind(await sha256(token), now).first<Omit<SessionUser, "vip">>();
+  `).bind(await sha256(token), now).first<Omit<SessionUser, "vip" | "freeGenerationsRemaining">>();
   if (!row) return null;
   const vip = row.role === "admin" || row.plan === "lifetime" || (row.plan !== "free" && Boolean(row.vipExpiresAt && row.vipExpiresAt > now));
-  return { ...row, role: row.role === "admin" ? "admin" : "user", plan: row.plan as Plan, vip };
+  const freeGenerationsUsed = Number(row.freeGenerationsUsed || 0);
+  return {
+    ...row,
+    role: row.role === "admin" ? "admin" : "user",
+    plan: row.plan as Plan,
+    vip,
+    freeGenerationsUsed,
+    freeGenerationsRemaining: vip ? null : Math.max(0, 3 - freeGenerationsUsed),
+  };
 }
 
 export async function paymentDetails() {

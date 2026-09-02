@@ -29,6 +29,13 @@
       "when": 1787919848301,
       "tag": "0003_regular_scourge",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788332002842,
+      "tag": "0004_red_spacker_dave",
+      "breakpoints": true
     }
   ]
 }

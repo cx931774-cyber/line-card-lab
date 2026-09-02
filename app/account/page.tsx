@@ -11,6 +11,8 @@ type Account = {
   plan: "free" | "monthly" | "annual" | "lifetime";
   vipExpiresAt: number | null;
   vip: boolean;
+  freeGenerationsUsed: number;
+  freeGenerationsRemaining: number | null;
 };
 
 const PLANS = [
@@ -146,7 +148,7 @@ export default function AccountPage() {
         {!loading && account ? (
           <div className="account-status">
             <div><strong>{account.displayName}</strong><span>{account.identifier}</span></div>
-            <div className={account.vip ? "vip-chip active" : "vip-chip"}>{account.vip ? `${account.plan.toUpperCase()} VIP` : "免費帳戶"}</div>
+            <div className={account.vip ? "vip-chip active" : "vip-chip"}>{account.vip ? `${account.plan.toUpperCase()} VIP` : `普通會員 · 剩餘 ${account.freeGenerationsRemaining ?? 0} / 3 次`}</div>
             {account.role === "admin" && <a href="/admin">進入後台</a>}
             <button type="button" onClick={logout}>退出登入</button>
           </div>
@@ -162,6 +164,7 @@ export default function AccountPage() {
 
         {account && <>
           {rechargeNotice && <p className="recharge-success">{rechargeNotice}</p>}
+          {!account.vip && <p className="free-generation-note">普通會員可免費生成 3 次 LINE 卡片。額度用完後，仍可編輯與預覽，開通 VIP 即可不限次生成。</p>}
           <div className="pricing-grid">
             {PLANS.map((plan) => (
               <article className={`price-card ${plan.id === "annual" ? "featured" : ""}`} key={plan.id}>

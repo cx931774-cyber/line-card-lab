@@ -78,3 +78,22 @@ test("renders USDT payment settings in the admin shell", async () => {
   assert.match(html, /充值記錄/);
   assert.doesNotMatch(html, /跳轉到這個地址/);
 });
+
+test("enforces and monitors three free card generations on the server", async () => {
+  const [generationRoute, auth, customBuilder, originalRoute, adminPage, schema] = await Promise.all([
+    readFile(new URL("../app/api/generations/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/lib/auth.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/original/[slug]/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../db/schema.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(generationRoute, /FREE_GENERATION_LIMIT = 3/);
+  assert.match(generationRoute, /access_type = 'free' AND status = 'allowed'/);
+  assert.match(generationRoute, /'free', 'denied'/);
+  assert.match(auth, /freeGenerationsRemaining/);
+  assert.match(customBuilder, /fetch\("\/api\/generations"/);
+  assert.match(originalRoute, /data-generation-trigger/);
+  assert.match(adminPage, /生成記錄/);
+  assert.match(schema, /generation_events/);
+});

@@ -48,6 +48,8 @@ type Account = {
   role: "user" | "admin";
   plan: "free" | "monthly" | "annual" | "lifetime";
   vip: boolean;
+  freeGenerationsUsed: number;
+  freeGenerationsRemaining: number | null;
 };
 
 type FavoriteSummary = {
@@ -328,7 +330,7 @@ function AccountActions({ account }: { account: Account | null | undefined }) {
     <div className="topbar-actions">
       {account?.role === "admin" && <a href="/admin">後台</a>}
       <a className={account?.vip ? "account-link vip" : "account-link"} href="/account">
-        {account === undefined ? "帳戶" : account ? (account.vip ? "VIP 帳戶" : "免費帳戶") : "登入 / 註冊"}
+        {account === undefined ? "帳戶" : account ? (account.vip ? "VIP 帳戶" : `普通會員 · ${account.freeGenerationsRemaining ?? 0} 次`) : "登入 / 註冊"}
       </a>
     </div>
   );
@@ -398,6 +400,7 @@ export default function Home() {
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [savingFavorite, setSavingFavorite] = useState(false);
+  const [generatingCard, setGeneratingCard] = useState(false);
   const [activeFavoriteId, setActiveFavoriteId] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -472,6 +475,48 @@ export default function Home() {
     setToast(message);
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(""), 2800);
+  };
+
+  const generateCard = async () => {
+    if (!account || generatingCard) return;
+    if (!compatibilityLink) {
+      notify("卡片連結尚未準備完成");
+      return;
+    }
+    if (!account.vip && (account.freeGenerationsRemaining ?? 0) <= 0) {
+      notify("3 次免費額度已用完，請開通 VIP");
+      window.setTimeout(() => { window.location.assign("/account?returnTo=%2F%3Ftemplate%3Dcustom-line-carousel"); }, 900);
+      return;
+    }
+
+    const popup = window.open("about:blank", "_blank");
+    if (popup) popup.opener = null;
+    setGeneratingCard(true);
+    try {
+      const response = await fetch("/api/generations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ template: "custom-line-carousel" }),
+      });
+      const data = await response.json() as { error?: string; used?: number; remaining?: number | null; unlimited?: boolean };
+      if (!response.ok) throw new Error(data.error || "生成失敗");
+
+      if (!data.unlimited) {
+        setAccount((current) => current ? {
+          ...current,
+          freeGenerationsUsed: Number(data.used || current.freeGenerationsUsed + 1),
+          freeGenerationsRemaining: Number(data.remaining ?? 0),
+        } : current);
+      }
+      if (popup) popup.location.replace(compatibilityLink);
+      else window.location.assign(compatibilityLink);
+      notify(data.unlimited ? "正在開啟 LINE 分享" : `已生成，剩餘 ${data.remaining ?? 0} 次免費額度`);
+    } catch (generationError) {
+      popup?.close();
+      notify(generationError instanceof Error ? generationError.message : "生成失敗");
+    } finally {
+      setGeneratingCard(false);
+    }
   };
 
   const saveFavorite = async (asNew = false) => {
@@ -804,15 +849,14 @@ export default function Home() {
           </section>
 
           <section className="editor-section compact-section">
-            <a
-              className={`create-card-action ${account?.vip && !compatibilityLink ? "disabled" : ""}`}
-              href={account?.vip ? (compatibilityLink || undefined) : "/account?returnTo=%2F%3Ftemplate%3Dcustom-line-carousel"}
-              target={account?.vip ? "_blank" : undefined}
-              rel={account?.vip ? "noreferrer" : undefined}
-              aria-disabled={account?.vip ? !compatibilityLink : false}
+            <button
+              className={`create-card-action ${!compatibilityLink ? "disabled" : ""}`}
+              type="button"
+              disabled={!compatibilityLink || generatingCard}
+              onClick={generateCard}
             >
-              <span><small>LINE</small>{account === undefined ? "讀取帳戶…" : account.vip ? (compatibilityLink ? "分享卡片" : "正在準備卡片…") : "開通 VIP 後分享"}</span><b>↗</b>
-            </a>
+              <span><small>LINE</small>{generatingCard ? "正在生成…" : account.vip ? "分享卡片" : (account.freeGenerationsRemaining ?? 0) > 0 ? `免費生成 · 剩餘 ${account.freeGenerationsRemaining} 次` : "免費額度已用完 · 開通 VIP"}</span><b>↗</b>
+            </button>
           </section>
 
         </div>

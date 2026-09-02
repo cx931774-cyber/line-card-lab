@@ -50,3 +50,16 @@ export const paymentSubmissions = sqliteTable("payment_submissions", {
 }, (table) => [
   index("idx_payment_submissions_user_created").on(table.userId, table.createdAt),
 ]);
+
+export const generationEvents = sqliteTable("generation_events", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  template: text("template").notNull(),
+  accessType: text("access_type").notNull(),
+  status: text("status").notNull(),
+  plan: text("plan").notNull(),
+  createdAt: integer("created_at").notNull(),
+}, (table) => [
+  index("idx_generation_events_user_access_status").on(table.userId, table.accessType, table.status),
+  index("idx_generation_events_created").on(table.createdAt),
+]);
