@@ -3,9 +3,9 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://linkasmnd.it.com"),
-  title: "LINE 卡片生成器｜線上製作 LINE Flex Message 卡片",
-  description: "線上選擇樣板、即時編輯與預覽 LINE 卡片，製作屬於你的 LINE Flex Message 輪播卡片。",
-  keywords: ["LINE 卡片", "LINE 卡片生成器", "LINE Flex Message", "LINE 輪播卡片"],
+  title: "社交卡片生成器｜LINE 與 WhatsApp 卡片",
+  description: "分類製作 LINE 卡片與 WhatsApp 分享卡，建立可公開預覽的分享連結。",
+  keywords: ["LINE 卡片", "LINE 卡片生成器", "LINE Flex Message", "WhatsApp 卡片", "WhatsApp 分享卡"],
   alternates: { canonical: "/" },
   robots: {
     index: true,
@@ -15,9 +15,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "/",
-    siteName: "LINE 卡片生成器",
-    title: "LINE 卡片生成器｜線上製作 LINE Flex Message 卡片",
-    description: "線上選擇樣板、即時編輯與預覽 LINE 卡片，製作屬於你的 LINE Flex Message 輪播卡片。",
+    siteName: "社交卡片生成器",
+    title: "社交卡片生成器｜LINE 與 WhatsApp 卡片",
+    description: "分類製作 LINE 卡片與 WhatsApp 分享卡，建立可公開預覽的分享連結。",
     locale: "zh_TW",
   },
   icons: {

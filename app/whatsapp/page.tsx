@@ -1,0 +1,240 @@
+"use client";
+
+import { ChangeEvent, FormEvent, useState } from "react";
+
+type WhatsAppCard = {
+  title: string;
+  description: string;
+  imageUrl: string;
+  phone: string;
+  message: string;
+};
+
+const INITIAL_CARD: WhatsAppCard = {
+  title: "",
+  description: "",
+  imageUrl: "",
+  phone: "",
+  message: "您好，我想了解更多資訊。",
+};
+
+function encodeCard(value: WhatsAppCard) {
+  const bytes = new TextEncoder().encode(JSON.stringify({ version: 1, ...value }));
+  let binary = "";
+  for (let index = 0; index < bytes.length; index += 32768) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + 32768));
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+async function prepareUpload(file: File) {
+  const bitmap = await createImageBitmap(file);
+  const maxSide = 1200;
+  const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  const context = canvas.getContext("2d");
+  if (!context) {
+    bitmap.close();
+    throw new Error("瀏覽器無法處理這張圖片");
+  }
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.86));
+  if (!blob) throw new Error("圖片處理失敗");
+  return blob;
+}
+
+export default function WhatsAppCardBuilder() {
+  const [card, setCard] = useState<WhatsAppCard>(INITIAL_CARD);
+  const [shareUrl, setShareUrl] = useState("");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const updateCard = <K extends keyof WhatsAppCard>(key: K, value: WhatsAppCard[K]) => {
+    setCard((current) => ({ ...current, [key]: value }));
+    setShareUrl("");
+    setCopied(false);
+    setNotice("");
+  };
+
+  const uploadImage = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("請選擇圖片檔案");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError("圖片不能超過 10MB");
+      return;
+    }
+
+    setUploading(true);
+    setError("");
+    try {
+      const image = await prepareUpload(file);
+      const formData = new FormData();
+      formData.append("file", image, "whatsapp-card.jpg");
+      const response = await fetch("/api/images", { method: "POST", body: formData });
+      const result = await response.json() as { url?: string; error?: string };
+      if (!response.ok || !result.url) throw new Error(result.error || "圖片上傳失敗");
+      updateCard("imageUrl", result.url);
+      setNotice("圖片已上傳");
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "圖片上傳失敗");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const generateCard = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setNotice("");
+
+    const title = card.title.trim();
+    const description = card.description.trim();
+    const imageUrl = card.imageUrl.trim();
+    const phone = card.phone.replace(/\D/g, "");
+    if (!title) return setError("請填寫卡片標題");
+    if (!description) return setError("請填寫卡片介紹");
+    if (!imageUrl) return setError("請上傳圖片，或填入可公開存取的 HTTPS 圖片網址");
+    if (phone.length < 7 || phone.length > 15) return setError("請填寫含國碼的 WhatsApp 電話號碼，例如 886912345678");
+
+    let parsedImage: URL;
+    try {
+      parsedImage = new URL(imageUrl);
+    } catch {
+      return setError("圖片網址格式不正確");
+    }
+    const localImageAllowed = ["localhost", "127.0.0.1"].includes(window.location.hostname)
+      && parsedImage.protocol === "http:"
+      && parsedImage.host === window.location.host;
+    if (parsedImage.protocol !== "https:" && !localImageAllowed) return setError("圖片網址必須使用 HTTPS，WhatsApp 才能讀取分享預覽");
+
+    const payload = encodeCard({ ...card, title, description, imageUrl: parsedImage.href, phone });
+    const url = new URL("/whatsapp/share", window.location.origin);
+    url.searchParams.set("card", payload);
+    setShareUrl(url.href);
+    setCopied(false);
+  };
+
+  const copyLink = async () => {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setNotice("卡片連結已複製");
+    } catch {
+      setError("無法自動複製，請手動複製上方連結");
+    }
+  };
+
+  const whatsappShareUrl = shareUrl
+    ? `https://wa.me/?text=${encodeURIComponent(shareUrl)}`
+    : "";
+
+  return (
+    <main className="site-shell whatsapp-shell">
+      <header className="topbar whatsapp-topbar">
+        <a className="brand" href="/?category=whatsapp" aria-label="返回卡片分類">
+          <span className="brand-mark whatsapp-brand-mark" aria-hidden="true">WA</span>
+          <span>WhatsApp 卡片生成</span>
+        </a>
+        <a className="whatsapp-back-link" href="/?category=whatsapp">返回卡片分類</a>
+      </header>
+
+      <div className="whatsapp-builder-page">
+        <div className="whatsapp-builder-heading">
+          <span className="whatsapp-eyebrow">FREE · PUBLIC SHARE LINK</span>
+          <h1>建立 WhatsApp 分享卡</h1>
+          <p>完成資料後會建立公開卡片頁。分享到 WhatsApp 時，WhatsApp 會從該頁讀取標題、介紹與圖片，產生實際連結預覽。</p>
+        </div>
+
+        <div className="whatsapp-builder-layout">
+          <form className="whatsapp-form-panel" onSubmit={generateCard}>
+            <label>
+              <span>卡片標題</span>
+              <input value={card.title} maxLength={80} required placeholder="例如：林小姐｜手作甜點" onChange={(event) => updateCard("title", event.target.value)} />
+            </label>
+            <label>
+              <span>卡片介紹</span>
+              <textarea value={card.description} maxLength={240} required rows={4} placeholder="簡單介紹品牌、服務或這張卡片的內容" onChange={(event) => updateCard("description", event.target.value)} />
+              <small className="whatsapp-field-hint">最多 240 字</small>
+            </label>
+            <label>
+              <span>WhatsApp 電話（含國碼）</span>
+              <input type="tel" inputMode="tel" value={card.phone} maxLength={24} required placeholder="例如：886912345678" onChange={(event) => updateCard("phone", event.target.value)} />
+              <small className="whatsapp-field-hint">收件人可從公開卡片直接開啟與你的 WhatsApp 對話。</small>
+            </label>
+            <label>
+              <span>預填聯絡訊息</span>
+              <input value={card.message} maxLength={250} placeholder="您好，我想了解更多資訊。" onChange={(event) => updateCard("message", event.target.value)} />
+            </label>
+            <label>
+              <span>分享圖片</span>
+              <input type="url" value={card.imageUrl} maxLength={2000} placeholder="https://example.com/card-image.jpg" onChange={(event) => updateCard("imageUrl", event.target.value)} />
+              <small className="whatsapp-field-hint">使用公開 HTTPS 圖片網址，或上傳圖片。圖片會作為 WhatsApp 連結預覽。</small>
+            </label>
+            <label className={`whatsapp-upload-control ${uploading ? "disabled" : ""}`}>
+              <input type="file" accept="image/*" disabled={uploading} onChange={uploadImage} />
+              <span aria-hidden="true">＋</span>
+              <strong>{uploading ? "圖片上傳中…" : "上傳圖片"}</strong>
+              <small>上傳後會填入圖片網址</small>
+            </label>
+
+            {error && <p className="whatsapp-message error" role="alert">{error}</p>}
+            {notice && <p className="whatsapp-message success" role="status">{notice}</p>}
+
+            <button className="whatsapp-generate-button" type="submit" disabled={uploading}>免費生成分享卡</button>
+            <p className="whatsapp-privacy-note">分享卡網址包含你填寫的公開資料；請勿放入密碼或私密資訊。免費生成，不扣 LINE 額度，也不需要付款。本機 localhost 連結只供預覽；分享給他人需使用已部署的 HTTPS 網域。</p>
+          </form>
+
+          <aside className="whatsapp-preview-panel" aria-label="卡片內容預覽">
+            <div className="whatsapp-preview-heading">
+              <div><small>PREVIEW</small><h2>卡片內容預覽</h2></div>
+              <span>公開分享頁</span>
+            </div>
+            <article className="whatsapp-live-card">
+              {card.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={card.imageUrl} alt="卡片圖片預覽" />
+              ) : (
+                <div className="whatsapp-image-placeholder"><span>加入圖片</span></div>
+              )}
+              <div className="whatsapp-live-card-body">
+                <small>WHATSAPP CARD</small>
+                <h3>{card.title || "卡片標題"}</h3>
+                <p>{card.description || "卡片介紹會顯示在這裡。"}</p>
+                <span className="whatsapp-contact-preview">在 WhatsApp 聯絡</span>
+              </div>
+            </article>
+
+            {shareUrl ? (
+              <div className="whatsapp-result-panel">
+                <label>
+                  <span>已生成的公開連結</span>
+                  <input readOnly value={shareUrl} onFocus={(event) => event.currentTarget.select()} />
+                </label>
+                <div className="whatsapp-result-actions">
+                  <button type="button" onClick={copyLink}>{copied ? "已複製" : "複製連結"}</button>
+                  <a href={shareUrl} target="_blank" rel="noreferrer">預覽卡片頁</a>
+                  <a className="whatsapp-share-action" href={whatsappShareUrl} target="_blank" rel="noreferrer">分享到 WhatsApp</a>
+                </div>
+              </div>
+            ) : (
+              <p className="whatsapp-preview-note">生成後可複製公開連結，或直接開啟 WhatsApp 分享。收件人開啟卡片後，可按鈕聯絡你。</p>
+            )}
+          </aside>
+        </div>
+      </div>
+    </main>
+  );
+}

@@ -337,7 +337,15 @@ function AccountActions({ account }: { account: Account | null | undefined }) {
 }
 
 function TemplateCatalog({ onOpenLineCarousel, account }: { onOpenLineCarousel: () => void; account: Account | null | undefined }) {
+  const [activeCategory, setActiveCategory] = useState<"line" | "whatsapp">("line");
   const [loginTarget, setLoginTarget] = useState("");
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("category") === "whatsapp") setActiveCategory("whatsapp");
+  }, []);
+  const selectCategory = (category: "line" | "whatsapp") => {
+    setActiveCategory(category);
+    window.history.replaceState({}, "", category === "whatsapp" ? "/?category=whatsapp" : "/");
+  };
   const promptLogin = (target: string) => {
     setLoginTarget(target);
     window.setTimeout(() => setLoginTarget(""), 3200);
@@ -346,37 +354,70 @@ function TemplateCatalog({ onOpenLineCarousel, account }: { onOpenLineCarousel: 
   return (
     <main className="site-shell catalog-shell" id="top">
       <header className="topbar catalog-topbar">
-        <a className="brand" href="#top" aria-label="LINE 卡片生成器首頁">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>LINE 卡片生成器</span>
+        <a className="brand" href="#top" aria-label="社交卡片生成器首頁">
+          <span className="brand-mark brand-mark-unified" aria-hidden="true" />
+          <span>社交卡片生成器</span>
         </a>
         <AccountActions account={account} />
       </header>
-      <section className="catalog-page" aria-labelledby="catalog-title">
-        <div className="catalog-heading">
-          <span>LINE FLEX MESSAGE</span>
-          <h1 id="catalog-title">LINE 卡片樣板列表</h1>
-          <p>選擇一款 LINE 卡片樣板，進入它自己的名片編輯表單。</p>
-        </div>
-        <div className="template-grid">
-          {CATALOG_TEMPLATES.map((template, index) => (
-            <article className="template-card" key={template.form}>
-              <div className="template-preview"><img src={template.preview} alt={`${template.name} 樣板預覽`} loading={index < 3 ? "eager" : "lazy"} decoding="async" fetchPriority={index === 0 ? "high" : "auto"} /></div>
+      <nav className="category-tabs" aria-label="卡片平台分類" role="tablist">
+        <button className={activeCategory === "line" ? "active" : ""} id="category-line" type="button" role="tab" aria-controls="line-category-panel" aria-selected={activeCategory === "line"} onClick={() => selectCategory("line")}>
+          <span className="category-dot line-dot" aria-hidden="true" />LINE 卡片
+        </button>
+        <button className={activeCategory === "whatsapp" ? "active" : ""} id="category-whatsapp" type="button" role="tab" aria-controls="whatsapp-category-panel" aria-selected={activeCategory === "whatsapp"} onClick={() => selectCategory("whatsapp")}>
+          <span className="category-dot whatsapp-dot" aria-hidden="true" />WhatsApp 卡片
+        </button>
+      </nav>
+      {activeCategory === "line" ? (
+        <section className="catalog-page" id="line-category-panel" role="tabpanel" aria-labelledby="category-line">
+          <div className="catalog-heading">
+            <span>LINE FLEX MESSAGE</span>
+            <h1 id="catalog-title">LINE 卡片樣板列表</h1>
+            <p>選擇一款 LINE 卡片樣板，進入它自己的名片編輯表單。</p>
+          </div>
+          <div className="template-grid">
+            {CATALOG_TEMPLATES.map((template, index) => (
+              <article className="template-card" key={template.form}>
+                <div className="template-preview"><img src={template.preview} alt={`${template.name} 樣板預覽`} loading={index < 3 ? "eager" : "lazy"} decoding="async" fetchPriority={index === 0 ? "high" : "auto"} /></div>
+                <div className="template-card-body">
+                  <h2>{template.name}</h2>
+                  <p>{template.description}</p>
+                  {template.form === "custom-line-carousel" ? (
+                    <button type="button" onClick={() => account ? onOpenLineCarousel() : promptLogin("/?template=custom-line-carousel")}>▣&nbsp; 點擊建立名片</button>
+                  ) : account ? (
+                    <a href={`/original/${template.form}`}>▣&nbsp; 點擊建立名片</a>
+                  ) : (
+                    <button type="button" onClick={() => promptLogin(`/original/${template.form}`)}>▣&nbsp; 點擊建立名片</button>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : (
+        <section className="catalog-page" id="whatsapp-category-panel" role="tabpanel" aria-labelledby="category-whatsapp">
+          <div className="catalog-heading whatsapp-heading">
+            <span>WHATSAPP SHARE CARDS</span>
+            <h1 id="whatsapp-catalog-title">WhatsApp 卡片生成</h1>
+            <p>建立可公開開啟的卡片連結，透過 WhatsApp 分享時由平台讀取真實網頁預覽。</p>
+          </div>
+          <div className="whatsapp-template-grid">
+            <article className="template-card whatsapp-template-card">
+              <div className="whatsapp-feature-preview" aria-hidden="true">
+                <span className="whatsapp-feature-mark">WA</span>
+                <span className="whatsapp-feature-caption">PUBLIC SHARE PAGE</span>
+                <span className="whatsapp-feature-line" />
+              </div>
               <div className="template-card-body">
-                <h2>{template.name}</h2>
-                <p>{template.description}</p>
-                {template.form === "custom-line-carousel" ? (
-                  <button type="button" onClick={() => account ? onOpenLineCarousel() : promptLogin("/?template=custom-line-carousel")}>▣&nbsp; 點擊建立名片</button>
-                ) : account ? (
-                  <a href={`/original/${template.form}`}>▣&nbsp; 點擊建立名片</a>
-                ) : (
-                  <button type="button" onClick={() => promptLogin(`/original/${template.form}`)}>▣&nbsp; 點擊建立名片</button>
-                )}
+                <span className="whatsapp-free-label">免費生成 · 不扣額度</span>
+                <h2>WhatsApp 聯絡分享卡</h2>
+                <p>設定標題、介紹、圖片與 WhatsApp 電話。生成公開卡片頁，分享時使用 WhatsApp 原生連結預覽。</p>
+                <a className="whatsapp-create-link" href="/whatsapp">建立 WhatsApp 卡片</a>
               </div>
             </article>
-          ))}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
       <div className={`login-entry-prompt ${loginTarget ? "show" : ""}`} role="status" aria-live="polite">
         <span>請先登入</span>
         {loginTarget && <a href={`/account?returnTo=${encodeURIComponent(loginTarget)}`}>登入 / 註冊</a>}
