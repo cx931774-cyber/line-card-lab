@@ -16,7 +16,9 @@ npm run dev
 npm run build
 ```
 
-This starter does not use `wrangler.jsonc`.
+Sites and local previews use inline Worker bindings. The optional standalone
+Cloudflare deployment uses `cloudflare/wrangler.jsonc`; see the
+[deployment guide](cloudflare/README.md).
 
 ## Included Shape
 

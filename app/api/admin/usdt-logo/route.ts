@@ -1,5 +1,5 @@
-import { env } from "cloudflare:workers";
 import { database, getSessionUser } from "../../../lib/auth";
+import { imageStorageAvailable, storeImage } from "../../../lib/image-storage";
 
 const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
 const IMAGE_TYPES: Record<string, string> = {
@@ -28,15 +28,12 @@ export async function POST(request: Request) {
     return Response.json({ error: "圖片不能超過 2MB" }, { status: 413 });
   }
 
-  const bucket = env.UPLOADS;
-  if (!bucket) {
+  if (!imageStorageAvailable()) {
     return Response.json({ error: "圖片儲存暫不可用" }, { status: 503 });
   }
 
   const key = `usdt-logo-${crypto.randomUUID()}.${extension}`;
-  await bucket.put(key, file.stream(), {
-    httpMetadata: { contentType: file.type },
-  });
+  await storeImage(key, file, file.type);
 
   const usdtLogoUrl = `/api/images/${key}`;
   const now = Math.floor(Date.now() / 1000);

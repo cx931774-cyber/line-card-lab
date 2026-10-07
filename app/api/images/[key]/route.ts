@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { readImage } from "../../../lib/image-storage";
 
 export async function GET(
   _request: Request,
@@ -9,12 +9,12 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 
-  const object = await env.UPLOADS?.get(key);
+  const object = await readImage(key);
   if (!object) return new Response("Not found", { status: 404 });
 
   return new Response(object.body, {
     headers: {
-      "Content-Type": object.httpMetadata?.contentType || "image/jpeg",
+      "Content-Type": object.contentType,
       "Cache-Control": "public, max-age=31536000, immutable",
       "X-Content-Type-Options": "nosniff",
     },

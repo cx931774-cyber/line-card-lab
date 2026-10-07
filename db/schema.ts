@@ -1,4 +1,4 @@
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
@@ -62,4 +62,20 @@ export const generationEvents = sqliteTable("generation_events", {
 }, (table) => [
   index("idx_generation_events_user_access_status").on(table.userId, table.accessType, table.status),
   index("idx_generation_events_created").on(table.createdAt),
+]);
+
+export const uploadedImages = sqliteTable("uploaded_images", {
+  key: text("key").primaryKey(),
+  contentType: text("content_type").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  chunkCount: integer("chunk_count").notNull(),
+  createdAt: integer("created_at").notNull(),
+});
+
+export const uploadedImageChunks = sqliteTable("uploaded_image_chunks", {
+  imageKey: text("image_key").notNull().references(() => uploadedImages.key, { onDelete: "cascade" }),
+  chunkIndex: integer("chunk_index").notNull(),
+  data: text("data").notNull(),
+}, (table) => [
+  primaryKey({ columns: [table.imageKey, table.chunkIndex] }),
 ]);

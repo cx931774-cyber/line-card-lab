@@ -1,0 +1,21 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "line-card-lab",
+  "main": "../worker/index.ts",
+  "compatibility_date": "2026-10-07",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "assets": {
+    "directory": "../dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "none"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "line-card-lab-db",
+      "database_id": "5d74a0ba-c455-4fa3-9699-9c104f353009",
+      "migrations_dir": "../drizzle"
+    }
+  ]
+}

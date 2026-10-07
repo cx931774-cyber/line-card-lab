@@ -43,11 +43,14 @@ export default defineConfig(async () => {
   // Local Windows previews can run without the Workers runtime when no
   // bindings are configured. Production builds always include Cloudflare.
   const isLocalPreview = process.env.CODEX_LOCAL_PREVIEW === "1";
+  const isStandaloneCloudflare = process.env.CF_STANDALONE === "1";
   const cloudflarePlugin = isLocalPreview
     ? null
     : (await import("@cloudflare/vite-plugin")).cloudflare({
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
-        config: localBindingConfig,
+        ...(isStandaloneCloudflare
+          ? { configPath: "./cloudflare/wrangler.jsonc" }
+          : { config: localBindingConfig }),
       });
 
   return {
